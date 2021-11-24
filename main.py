@@ -1,15 +1,23 @@
-from win32gui import FindWindow, GetWindowRect
 from PIL import ImageGrab
 import numpy as np
 import cv2
+import ctypes
+from ctypes.wintypes import HWND, DWORD, RECT
 
-# Find the position of the app on screen
-window_handle = FindWindow(None, "Anitrone")
-window_rect = GetWindowRect(window_handle)
-print(window_rect)
+dwmapi = ctypes.WinDLL("dwmapi")
+
+hwnd = 787684    # refer to the other answers on how to find the hwnd of your window
+
+rect = RECT()
+DMWA_EXTENDED_FRAME_BOUNDS = 9
+dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS),
+                             ctypes.byref(rect), ctypes.sizeof(rect))
+
+print(rect.left, rect.top, rect.right, rect.bottom)
+
 
 while True:
-    img = ImageGrab.grab(bbox=(window_rect))
+    img = ImageGrab.grab(bbox=(rect.left, rect.top, rect.right, rect.bottom))
     img_np = np.array(img)
     img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
     cv2.imshow('Capturer', img_final)
