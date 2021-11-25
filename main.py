@@ -22,9 +22,12 @@ def switch_img(i):
         img_label[i].configure(image=images[0])
         img_label[i].image = images[0]
 
-def trigger_glow(tempo):
-    print(tempo)
-    for i in range(8):
+i = 0
+
+def trigger_glow():
+    #print(tempo)
+    global i
+    if i < 8:
         print(i)
         if(img_label[i].image == images[0]):
             img_label[i].configure(image=images_glow[0])
@@ -41,7 +44,8 @@ def trigger_glow(tempo):
         elif(img_label[i].image == images[4]):
             img_label[i].configure(image=images_glow[4])
             img_label[i].image = images_glow[4]
-        time.sleep(1)
+        i+=1
+        root.after(1000, trigger_glow)
        
 
 # --- main ---
@@ -132,7 +136,7 @@ img_label[7].grid(column=7, row=0)
 img_label[7].bind('<Button-1>', lambda *_: switch_img(7))
 
 
-root.bind('<Control-q>', lambda *_: trigger_glow(120))
+root.bind('<Control-q>', lambda *_: trigger_glow())
 root.bind('<Control-w>', lambda *_: trigger_glow(150))
 root.bind('<Control-e>', lambda *_: trigger_glow(180))
 
