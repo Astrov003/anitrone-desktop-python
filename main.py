@@ -1,51 +1,48 @@
-from time import sleep
+import time
 import tkinter as tk
 from PIL import Image, ImageTk
 
 # --- functions ---
 
-def switch_img(index):
+def switch_img(i):
 
-    if(globals()[f"img{index}_label"].image == images[0]):
-        globals()[f"img{index}_label"].configure(image=images[1])
-        globals()[f"img{index}_label"].image = images[1]
-    elif(globals()[f"img{index}_label"].image == images[1]):
-        globals()[f"img{index}_label"].configure(image=images[2])
-        globals()[f"img{index}_label"].image = images[2]
-    elif(globals()[f"img{index}_label"].image == images[2]):
-        globals()[f"img{index}_label"].configure(image=images[3])
-        globals()[f"img{index}_label"].image = images[3]
-    elif(globals()[f"img{index}_label"].image == images[3]):
-        globals()[f"img{index}_label"].configure(image=images[4])
-        globals()[f"img{index}_label"].image = images[4]
-    elif(globals()[f"img{index}_label"].image == images[4]):
-        globals()[f"img{index}_label"].configure(image=images[0])
-        globals()[f"img{index}_label"].image = images[0]
+    if(img_label[i].image == images[0]):
+        img_label[i].configure(image=images[1])
+        img_label[i].image = images[1]
+    elif(img_label[i].image == images[1]):
+        img_label[i].configure(image=images[2])
+        img_label[i].image = images[2]
+    elif(img_label[i].image == images[2]):
+        img_label[i].configure(image=images[3])
+        img_label[i].image = images[3]
+    elif(img_label[i].image == images[3]):
+        img_label[i].configure(image=images[4])
+        img_label[i].image = images[4]
+    elif(img_label[i].image == images[4]):
+        img_label[i].configure(image=images[0])
+        img_label[i].image = images[0]
 
-def trigger_glow(index): 
-    if(globals()[f"img{index}_label"].image == images[0]):
-        globals()[f"img{index}_label"].configure(image=images_glow[0])
-        globals()[f"img{index}_label"].image = images_glow[0]
-    elif(globals()[f"img{index}_label"].image == images[1]):
-        globals()[f"img{index}_label"].configure(image=images_glow[1])
-        globals()[f"img{index}_label"].image = images_glow[1]
-    elif(globals()[f"img{index}_label"].image == images[2]):
-        globals()[f"img{index}_label"].configure(image=images[2])
-        globals()[f"img{index}_label"].image = images_glow[2]
-    elif(globals()[f"img{index}_label"].image == images[3]):
-        globals()[f"img{index}_label"].configure(image=images_glow[3])
-        globals()[f"img{index}_label"].image = images_glow[3]
-    elif(globals()[f"img{index}_label"].image == images[4]):
-        globals()[f"img{index}_label"].configure(image=images_glow[4])
-        globals()[f"img{index}_label"].image = images_glow[4]
-    
-       
-def play(tempo):
+def trigger_glow(tempo):
     print(tempo)
-    for index in range(8):
-        trigger_glow(index)
-        print(index)
-        sleep(1)
+    for i in range(8):
+        print(i)
+        if(img_label[i].image == images[0]):
+            img_label[i].configure(image=images_glow[0])
+            img_label[i].image = images_glow[0]
+        elif(img_label[i].image == images[1]):
+            img_label[i].configure(image=images_glow[1])
+            img_label[i].image = images_glow[1]
+        elif(img_label[i].image == images[2]):
+            img_label[i].configure(image=images_glow[2])
+            img_label[i].image = images_glow[2]
+        elif(img_label[i].image == images[3]):
+            img_label[i].configure(image=images_glow[3])
+            img_label[i].image = images_glow[3]
+        elif(img_label[i].image == images[4]):
+            img_label[i].configure(image=images_glow[4])
+            img_label[i].image = images_glow[4]
+        time.sleep(1)
+       
 
 # --- main ---
 
@@ -92,48 +89,50 @@ images_glow = [
     ImageTk.PhotoImage(img4_glow)
 ]
 
-img0_label = tk.Label(image=images[0])
-img0_label.image = images[0]
-img0_label.grid(column=0, row=0)
-img0_label.bind('<Button-1>', lambda *_: switch_img('0'))
+img_label = {}
 
-img1_label = tk.Label(image=images[0])
-img1_label.image = images[0]
-img1_label.grid(column=1, row=0)
-img1_label.bind('<Button-1>', lambda *_: switch_img('1'))
+img_label[0] = tk.Label(image=images[0])
+img_label[0].image = images[0]
+img_label[0].grid(column=0, row=0)
+img_label[0].bind('<Button-1>', lambda *_: switch_img(0))
+
+img_label[1] = tk.Label(image=images[0])
+img_label[1].image = images[0]
+img_label[1].grid(column=1, row=0)
+img_label[1].bind('<Button-1>', lambda *_: switch_img(1))
     
-img2_label = tk.Label(image=images[0])
-img2_label.image = images[0]
-img2_label.grid(column=2, row=0)
-img2_label.bind('<Button-1>', lambda *_: switch_img('2'))
+img_label[2] = tk.Label(image=images[0])
+img_label[2].image = images[0]
+img_label[2].grid(column=2, row=0)
+img_label[2].bind('<Button-1>', lambda *_: switch_img(2))
 
-img3_label = tk.Label(image=images[0])
-img3_label.image = images[0]
-img3_label.grid(column=3, row=0)
-img3_label.bind('<Button-1>', lambda *_: switch_img('3'))
+img_label[3] = tk.Label(image=images[0])
+img_label[3].image = images[0]
+img_label[3].grid(column=3, row=0)
+img_label[3].bind('<Button-1>', lambda *_: switch_img(3))
 
-img4_label = tk.Label(image=images[0])
-img4_label.image = images[0]
-img4_label.grid(column=4, row=0)
-img4_label.bind('<Button-1>', lambda *_: switch_img('4'))
+img_label[4] = tk.Label(image=images[0])
+img_label[4].image = images[0]
+img_label[4].grid(column=4, row=0)
+img_label[4].bind('<Button-1>', lambda *_: switch_img(4))
 
-img5_label = tk.Label(image=images[0])
-img5_label.image = images[0]
-img5_label.grid(column=5, row=0)
-img5_label.bind('<Button-1>', lambda *_: switch_img('5'))
+img_label[5] = tk.Label(image=images[0])
+img_label[5].image = images[0]
+img_label[5].grid(column=5, row=0)
+img_label[5].bind('<Button-1>', lambda *_: switch_img(5))
 
-img6_label = tk.Label(image=images[0])
-img6_label.image = images[0]
-img6_label.grid(column=6, row=0)
-img6_label.bind('<Button-1>', lambda *_: switch_img('6'))
+img_label[6] = tk.Label(image=images[0])
+img_label[6].image = images[0]
+img_label[6].grid(column=6, row=0)
+img_label[6].bind('<Button-1>', lambda *_: switch_img(6))
 
-img7_label = tk.Label(image=images[0])
-img7_label.image = images[0]
-img7_label.grid(column=7, row=0)
-img7_label.bind('<Button-1>', lambda *_: switch_img('7'))
+img_label[7] = tk.Label(image=images[0])
+img_label[7].image = images[0]
+img_label[7].grid(column=7, row=0)
+img_label[7].bind('<Button-1>', lambda *_: switch_img(7))
 
 
-root.bind('<Control-q>', lambda *_: play(120))
+root.bind('<Control-q>', lambda *_: trigger_glow(120))
 root.bind('<Control-w>', lambda *_: trigger_glow(150))
 root.bind('<Control-e>', lambda *_: trigger_glow(180))
 
