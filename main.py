@@ -1,6 +1,6 @@
-import time
 import tkinter as tk
 from PIL import Image, ImageTk
+import time
 
 # --- functions ---
 
@@ -29,10 +29,15 @@ def trigger_glow():
     global i
     if i < 8:
         print(i)
+        alpha_value = 0.00
         if(img_label[i].image == images[0]):
-            img_label[i].configure(image=images_glow[0])
-            img_label[i].image = images_glow[0]
-        elif(img_label[i].image == images[1]):
+            while 1.0 > alpha_value:
+                new_img = Image.blend(images[0], images_glow[0], alpha=alpha_value)
+                alpha_value += 0.01
+                time.sleep(0.1)
+                img_label[i].configure(image=new_img)
+                img_label[i].image = new_img
+        """ elif(img_label[i].image == images[1]):
             img_label[i].configure(image=images_glow[1])
             img_label[i].image = images_glow[1]
         elif(img_label[i].image == images[2]):
@@ -43,7 +48,7 @@ def trigger_glow():
             img_label[i].image = images_glow[3]
         elif(img_label[i].image == images[4]):
             img_label[i].configure(image=images_glow[4])
-            img_label[i].image = images_glow[4]
+            img_label[i].image = images_glow[4] """
         i+=1
         root.after(1000, trigger_glow)
        
@@ -92,6 +97,9 @@ images_glow = [
     ImageTk.PhotoImage(img3_glow),
     ImageTk.PhotoImage(img4_glow)
 ]
+
+img_label_glow0 = tk.Label(image=images_glow[0])
+img_label_glow0.image = images_glow[0]
 
 img_label = {}
 
