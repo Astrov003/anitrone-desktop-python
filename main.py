@@ -1,6 +1,10 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import time
+import sys
+sys.setrecursionlimit(1500)
+
+#import asyncio
 
 # --- functions ---
 
@@ -25,38 +29,39 @@ def switch_img(i):
 
 alpha = 0.00
 
-def crossfade(img_position, img_type): 
+def crossfade(img_position): 
     #if(img_label[img_position].image == images[img_type]):
     global alpha
-    while alpha < 1.0:
-        new_img = Image.blend(img0, img0_glow, alpha)
+    for alpha in range(10):
+        alpha_div = alpha/10
+        new_img = Image.blend(img0, img0_glow, alpha_div)
         new_img_ph = ImageTk.PhotoImage(new_img)
-        new_img_label = tk.Label(image=new_img_ph)
-        new_img_label.image = new_img_ph  
-        new_img_label.grid(column=img_position, row=0)
-        alpha += 0.1
-        print("check")
-        #root.after(10, crossfade)
+        img_label[img_position].configure(image=new_img_ph)
+        img_label[img_position].image = new_img_ph
+        #time.sleep(1)
+        root.after(1000, crossfade(img_position))
 
 img_position = 0
 
-def trigger_glow(tempo):
-    print(tempo)
+def trigger_glow():
+    #print(tempo)
     global img_position
-    while img_position < 8:
+    if (img_position < 8):
         print(img_position)
         if(img_label[img_position].image == images[0]):
-            crossfade(img_position, 0)
+            crossfade(img_position)
         elif(img_label[img_position].image == images[1]):
-            crossfade(img_position, 1)
+            crossfade(img_position)
         elif(img_label[img_position].image == images[2]):
-            crossfade(img_position, 2)
+            crossfade(img_position)
         elif(img_label[img_position].image == images[3]):
-            crossfade(img_position, 3)
+            crossfade(img_position)
         elif(img_label[img_position].image == images[4]):
-            crossfade(img_position, 4)
+            crossfade(img_position)
         img_position+=1
-        root.after(1000, trigger_glow)
+        #root.after(900, trigger_glow)
+    
+        
        
 
 # --- main ---
@@ -150,7 +155,7 @@ img_label[7].grid(column=7, row=0)
 img_label[7].bind('<Button-1>', lambda *_: switch_img(7))
 
 
-root.bind('<Control-q>', lambda *_: trigger_glow(120))
+root.bind('<Control-q>', lambda *_: trigger_glow())
 root.bind('<Control-w>', lambda *_: trigger_glow(150))
 root.bind('<Control-e>', lambda *_: trigger_glow(180))
 
