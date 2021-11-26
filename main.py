@@ -22,34 +22,37 @@ def switch_img(i):
         img_label[i].configure(image=images[0])
         img_label[i].image = images[0]
 
-i = 0
 
-def trigger_glow():
-    #print(tempo)
-    global i
-    if i < 8:
-        print(i)
-        alpha_value = 0.00
-        if(img_label[i].image == images[0]):
-            while 1.0 > alpha_value:
-                new_img = Image.blend(images[0], images_glow[0], alpha=alpha_value)
-                alpha_value += 0.01
-                time.sleep(0.1)
-                img_label[i].configure(image=new_img)
-                img_label[i].image = new_img
-        """ elif(img_label[i].image == images[1]):
-            img_label[i].configure(image=images_glow[1])
-            img_label[i].image = images_glow[1]
-        elif(img_label[i].image == images[2]):
-            img_label[i].configure(image=images_glow[2])
-            img_label[i].image = images_glow[2]
-        elif(img_label[i].image == images[3]):
-            img_label[i].configure(image=images_glow[3])
-            img_label[i].image = images_glow[3]
-        elif(img_label[i].image == images[4]):
-            img_label[i].configure(image=images_glow[4])
-            img_label[i].image = images_glow[4] """
-        i+=1
+def crossfade(img_position, img_type):
+    #img_label[img_position].configure(image=images_glow[img_type])
+    #img_label[img_position].image = images_glow[img_type]
+    alpha_value = 0.00
+    if(img_label[img_position].image == images[0]):
+        while alpha_value < 1.0:
+            new_img = Image.blend(images[0], images_glow[0], alpha=alpha_value)
+            alpha_value += 0.01
+            time.sleep(0.1)
+            img_label[img_position].configure(image=new_img)
+            img_label[img_position].image = new_img
+
+img_position = 0
+
+def trigger_glow(tempo):
+    print(tempo)
+    global img_position
+    if img_position < 8:
+        print(img_position)
+        if(img_label[img_position].image == images[0]):
+            crossfade(img_position, 0)
+        elif(img_label[img_position].image == images[1]):
+            crossfade(img_position, 1)
+        elif(img_label[img_position].image == images[2]):
+            crossfade(img_position, 1)
+        elif(img_label[img_position].image == images[3]):
+            crossfade(img_position, 1)
+        elif(img_label[img_position].image == images[4]):
+            crossfade(img_position, 1)
+        img_position+=1
         root.after(1000, trigger_glow)
        
 
@@ -144,7 +147,7 @@ img_label[7].grid(column=7, row=0)
 img_label[7].bind('<Button-1>', lambda *_: switch_img(7))
 
 
-root.bind('<Control-q>', lambda *_: trigger_glow())
+root.bind('<Control-q>', lambda *_: trigger_glow(120))
 root.bind('<Control-w>', lambda *_: trigger_glow(150))
 root.bind('<Control-e>', lambda *_: trigger_glow(180))
 
