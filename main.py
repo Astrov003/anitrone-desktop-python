@@ -1,8 +1,8 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import time
-import sys
-sys.setrecursionlimit(1500)
+import cv2
+import numpy as np
 
 #import asyncio
 
@@ -26,21 +26,6 @@ def switch_img(i):
         img_label[i].configure(image=images[0])
         img_label[i].image = images[0]
 
-
-alpha = 0.00
-
-def crossfade(img_position): 
-    #if(img_label[img_position].image == images[img_type]):
-    global alpha
-    for alpha in range(10):
-        alpha_div = alpha/10
-        new_img = Image.blend(img0, img0_glow, alpha_div)
-        new_img_ph = ImageTk.PhotoImage(new_img)
-        img_label[img_position].configure(image=new_img_ph)
-        img_label[img_position].image = new_img_ph
-        #time.sleep(1)
-        root.after(1000, crossfade(img_position))
-
 img_position = 0
 
 def trigger_glow():
@@ -49,17 +34,22 @@ def trigger_glow():
     if (img_position < 8):
         print(img_position)
         if(img_label[img_position].image == images[0]):
-            crossfade(img_position)
+            img_label[img_position].configure(image=images_glow[0])
+            img_label[img_position].image = images_glow[0]
         elif(img_label[img_position].image == images[1]):
-            crossfade(img_position)
+            img_label[img_position].configure(image=images_glow[1])
+            img_label[img_position].image = images_glow[1]
         elif(img_label[img_position].image == images[2]):
-            crossfade(img_position)
+            img_label[img_position].configure(image=images_glow[2])
+            img_label[img_position].image = images_glow[2]
         elif(img_label[img_position].image == images[3]):
-            crossfade(img_position)
+            img_label[img_position].configure(image=images_glow[3])
+            img_label[img_position].image = images_glow[3]
         elif(img_label[img_position].image == images[4]):
-            crossfade(img_position)
+            img_label[img_position].configure(image=images_glow[4])
+            img_label[img_position].image = images_glow[4]
         img_position+=1
-        #root.after(900, trigger_glow)
+        root.after(1000, trigger_glow)
     
         
        
