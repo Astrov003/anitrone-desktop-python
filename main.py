@@ -23,35 +23,38 @@ def switch_img(i):
         img_label[i].image = images[0]
 
 
-def crossfade(img_position, img_type):
-    #img_label[img_position].configure(image=images_glow[img_type])
-    #img_label[img_position].image = images_glow[img_type]
-    alpha_value = 0.00
-    if(img_label[img_position].image == images[0]):
-        while alpha_value < 1.0:
-            new_img = Image.blend(images[0], images_glow[0], alpha=alpha_value)
-            alpha_value += 0.01
-            time.sleep(0.1)
-            img_label[img_position].configure(image=new_img)
-            img_label[img_position].image = new_img
+alpha = 0.00
+
+def crossfade(img_position, img_type): 
+    #if(img_label[img_position].image == images[img_type]):
+    global alpha
+    while alpha < 1.0:
+        new_img = Image.blend(img0, img0_glow, alpha)
+        new_img_ph = ImageTk.PhotoImage(new_img)
+        new_img_label = tk.Label(image=new_img_ph)
+        new_img_label.image = new_img_ph  
+        new_img_label.grid(column=img_position, row=0)
+        alpha += 0.1
+        print("check")
+        #root.after(10, crossfade)
 
 img_position = 0
 
 def trigger_glow(tempo):
     print(tempo)
     global img_position
-    if img_position < 8:
+    while img_position < 8:
         print(img_position)
         if(img_label[img_position].image == images[0]):
             crossfade(img_position, 0)
         elif(img_label[img_position].image == images[1]):
             crossfade(img_position, 1)
         elif(img_label[img_position].image == images[2]):
-            crossfade(img_position, 1)
+            crossfade(img_position, 2)
         elif(img_label[img_position].image == images[3]):
-            crossfade(img_position, 1)
+            crossfade(img_position, 3)
         elif(img_label[img_position].image == images[4]):
-            crossfade(img_position, 1)
+            crossfade(img_position, 4)
         img_position+=1
         root.after(1000, trigger_glow)
        
@@ -64,7 +67,7 @@ canvas = tk.Canvas(root, width=1080, height=200)
 canvas.grid(columnspan=8)
 
 img0 = Image.open('./images/dot.png')
-img0 = img0.resize((120, 120), Image.ANTIALIAS)
+img0 = img0.resize((120, 120))
 img1 = Image.open('./images/down_full.png')
 img1 = img1.resize((120, 120), Image.ANTIALIAS)
 img2 = Image.open('./images/down_open.png')
@@ -83,7 +86,7 @@ images = [
 ]
 
 img0_glow = Image.open('./images/dot_glow.png')
-img0_glow = img0_glow.resize((120, 120), Image.ANTIALIAS)
+img0_glow = img0_glow.resize((120, 120))
 img1_glow = Image.open('./images/down_full_glow.png')
 img1_glow = img1_glow.resize((120, 120), Image.ANTIALIAS)
 img2_glow = Image.open('./images/down_open_glow.png')
