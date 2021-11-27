@@ -28,6 +28,11 @@ def switch_img(i):
 
 img_position = 0
 
+def medium():
+    trigger_glow()
+    exec(open("./render.py").read())
+    
+    
 def trigger_glow():
     #print(tempo)
     global img_position
@@ -58,7 +63,7 @@ def trigger_glow():
 
 root = tk.Tk()
 
-canvas = tk.Canvas(root, width=1080, height=200)
+canvas = tk.Canvas(root, width=820, height=120)
 canvas.grid(columnspan=8)
 
 img0 = Image.open('./images/dot.png')
@@ -145,7 +150,7 @@ img_label[7].grid(column=7, row=0)
 img_label[7].bind('<Button-1>', lambda *_: switch_img(7))
 
 
-root.bind('<Control-q>', lambda *_: trigger_glow())
+root.bind('<Control-q>', lambda *_: medium())
 root.bind('<Control-w>', lambda *_: trigger_glow(150))
 root.bind('<Control-e>', lambda *_: trigger_glow(180))
 
