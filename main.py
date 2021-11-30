@@ -1,36 +1,42 @@
 import tkinter as tk
 from PIL import Image, ImageTk
-import time
-import cv2
-import numpy as np
+#import time
+#import cv2
+#import numpy as np
 
 #import asyncio
 
 # --- functions ---
 
 def switch_img(i):
+    global img_at_position
 
-    if(img_label[i].image == images[0]):
-        img_label[i].configure(image=images[1])
-        img_label[i].image = images[1]
-    elif(img_label[i].image == images[1]):
+    if img_at_position[i] == 0:
+        display_image[i] = images[1]
+        img_at_position[i] = 1
+    elif img_at_position[i] == 1:
         img_label[i].configure(image=images[2])
         img_label[i].image = images[2]
-    elif(img_label[i].image == images[2]):
+        img_at_position[i] = 2
+    elif img_at_position[i] == 2:
         img_label[i].configure(image=images[3])
         img_label[i].image = images[3]
-    elif(img_label[i].image == images[3]):
+        img_at_position[i] = 3
+    elif img_at_position[i] == 3:
         img_label[i].configure(image=images[4])
         img_label[i].image = images[4]
-    elif(img_label[i].image == images[4]):
+        img_at_position[i] = 4
+    elif img_at_position[i] == 4:
         img_label[i].configure(image=images[0])
         img_label[i].image = images[0]
+        img_at_position[i] = 0
+
 
 img_position = 0
 
 def medium():
     trigger_glow()
-    exec(open("./render.py").read())
+    #exec(open("./render.py").read())
     
     
 def trigger_glow():
@@ -108,47 +114,59 @@ img_label_glow0 = tk.Label(image=images_glow[0])
 img_label_glow0.image = images_glow[0]
 
 img_label = {}
+img_at_position = {}
+display_image = {}
 
-img_label[0] = tk.Label(image=images[0])
-img_label[0].image = images[0]
+display_image[0] = images[0]
+
+
+img_label[0] = tk.Label(image=display_image[0])
+img_label[0].image = display_image[0]
 img_label[0].grid(column=0, row=0)
 img_label[0].bind('<Button-1>', lambda *_: switch_img(0))
+img_at_position[0] = 0
 
 img_label[1] = tk.Label(image=images[0])
 img_label[1].image = images[0]
 img_label[1].grid(column=1, row=0)
 img_label[1].bind('<Button-1>', lambda *_: switch_img(1))
-    
+img_at_position[1] = 0
+
 img_label[2] = tk.Label(image=images[0])
 img_label[2].image = images[0]
 img_label[2].grid(column=2, row=0)
 img_label[2].bind('<Button-1>', lambda *_: switch_img(2))
+img_at_position[2] = 0
 
 img_label[3] = tk.Label(image=images[0])
 img_label[3].image = images[0]
 img_label[3].grid(column=3, row=0)
 img_label[3].bind('<Button-1>', lambda *_: switch_img(3))
+img_at_position[3] = 0
 
 img_label[4] = tk.Label(image=images[0])
 img_label[4].image = images[0]
 img_label[4].grid(column=4, row=0)
 img_label[4].bind('<Button-1>', lambda *_: switch_img(4))
+img_at_position[4] = 0
 
 img_label[5] = tk.Label(image=images[0])
 img_label[5].image = images[0]
 img_label[5].grid(column=5, row=0)
 img_label[5].bind('<Button-1>', lambda *_: switch_img(5))
+img_at_position[5] = 0
 
 img_label[6] = tk.Label(image=images[0])
 img_label[6].image = images[0]
 img_label[6].grid(column=6, row=0)
 img_label[6].bind('<Button-1>', lambda *_: switch_img(6))
+img_at_position[6] = 0
 
 img_label[7] = tk.Label(image=images[0])
 img_label[7].image = images[0]
 img_label[7].grid(column=7, row=0)
 img_label[7].bind('<Button-1>', lambda *_: switch_img(7))
-
+img_at_position[7] = 0
 
 root.bind('<Control-q>', lambda *_: medium())
 root.bind('<Control-w>', lambda *_: trigger_glow(150))
