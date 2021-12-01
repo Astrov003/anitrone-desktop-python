@@ -5,10 +5,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import (Qt, pyqtSignal, QRect)
 
 
-class Image_object():
-    pressPos = None
-    clicked = pyqtSignal()
-
+class Image_object():    
     def image(column):
         image = QPixmap("./images/dot.png")
         image = image.scaledToWidth(120)
@@ -17,21 +14,15 @@ class Image_object():
         img.setPixmap(image)
         grid.addWidget(img, 0, column)
 
+    def mousePressEvent(self, img):
+        print ("clicked")
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.pressPos = event.pos()
 
-    def mouseReleaseEvent(self, event):
-        global img_rect
-        # ensure that the left button was pressed *and* released within the
-        # geometry of the widget; if so, emit the signal;
-        if (self.pressPos is not None and 
-            event.button() == Qt.LeftButton and 
-            event.pos() in self_rect()):
-                self.clicked.emit()
-                print('aaa')
-        self.pressPos = None
+class MyWidget(QWidget):
+     def mousePressEvent(self, event):
+        print ("clicked")
+
+
 
 
 app = QApplication(sys.argv)
@@ -53,5 +44,8 @@ Image_object.image(5)
 Image_object.image(6)
 Image_object.image(7)
 
+widget = MyWidget()
+widget.show()
+
 window.show()
-sys.exit(app.exec())
+sys.exit(app.exec_())
