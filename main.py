@@ -1,8 +1,28 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QLabel, QGraphicsOpacityEffect
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtCore
-from PyQt5.QtCore import (Qt, pyqtSignal, QRect)
+from PyQt5.QtCore import Qt, pyqtSignal, QRect
+
+def fade(widget):
+    effect = QGraphicsOpacityEffect()
+    widget.setGraphicsEffect(effect)
+
+    animation = QtCore.QPropertyAnimation(effect, b"opacity")
+    animation.setDuration(1000)
+    animation.setStartValue(0)
+    animation.setEndValue(1)
+    animation.start()
+
+def unfade(self, widget):
+    self.effect = QGraphicsOpacityEffect()
+    widget.setGraphicsEffect(self.effect)
+
+    self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
+    self.animation.setDuration(1000)
+    self.animation.setStartValue(0)
+    self.animation.setEndValue(1)
+    self.animation.start()
 
 
 class MyWidget(QWidget):
@@ -14,13 +34,86 @@ class MyWidget(QWidget):
         print ("clicked")
         img0.setPixmap(image0_glow)
 
+class Image0(QLabel):
+    def mousePressEvent(self, event):
+        print ("clicked0")
+        btn0.setPixmap(image1)
+
+class Image1(QLabel):     
+    def mousePressEvent(self, event):
+        print ("clicked1")
+
+class Image2(QLabel):     
+    def mousePressEvent(self, event):
+        print ("clicked2")
+
+class Image3(QLabel):     
+    def mousePressEvent(self, event):
+        print ("clicked3")
+
+class Image4(QLabel):     
+    def mousePressEvent(self, event):
+        print ("clicked4")
+
+class Image5(QLabel):     
+    def mousePressEvent(self, event):
+        print ("clicked5")
+
+class Image6(QLabel):     
+    def mousePressEvent(self, event):
+        print ("clicked6")
+
+class Image7(QLabel):     
+    def mousePressEvent(self, event):
+        print ("clicked7")
+
+#==== GLOBAL VARIABLES====
+
+
+#==== MAIN ================
 
 app = QApplication(sys.argv)
+
+#windget = QWidget()
+widget = QWidget()
+widget.setWindowTitle('Anitrone')
+widget.setGeometry(200, 200, 820, 120)
+widget.setStyleSheet("background: black;")
+
+# GRID
+
+grid = QGridLayout()
+widget.setLayout(grid)
+
+
+# BUTTONS
+
+button0 = QPixmap('./images/dot.png')
+button0 = button0.scaledToWidth(120)
+button0 = button0.scaledToHeight(120)
+
+btn0 = Image0()
+btn0.setPixmap(button0)
+btn1 = Image1()
+btn1.setPixmap(button0)
+btn2 = Image2()
+btn2.setPixmap(button0)
+btn3 = Image3()
+btn3.setPixmap(button0)
+btn4 = Image4()
+btn4.setPixmap(button0)
+btn5 = Image5()
+btn5.setPixmap(button0)
+btn6 = Image6()
+btn6.setPixmap(button0)
+btn7 = Image7()
+btn7.setPixmap(button0)
+
 
 ### BASE IMAGES
 
 image0 = QPixmap('./images/dot.png')
-imaeg0 = image0.scaledToWidth(120)
+image0 = image0.scaledToWidth(120)
 image0 = image0.scaledToHeight(120)
 img0 = QLabel()
 img0.setPixmap(image0)
@@ -79,24 +172,14 @@ img4_glow.setPixmap(image4_glow)
 
 images_glow = [img0_glow, img1_glow, img2_glow, img3_glow, img4_glow]
 
-grid = QGridLayout()
-
-MyWidget.image(0)
-MyWidget.image(1)
-MyWidget.image(2)
-MyWidget.image(3)
-MyWidget.image(4)
-MyWidget.image(5)
-MyWidget.image(6)
-MyWidget.image(7)
-
-#windget = QWidget()
-widget = MyWidget()
-widget.setWindowTitle('aaa')
-widget.setGeometry(200, 200, 820, 120)
-widget.setStyleSheet("background: black;")
-
-widget.setLayout(grid)
+grid.addWidget(btn0, 0, 0)
+grid.addWidget(btn1, 0, 1)
+grid.addWidget(btn2, 0, 2)
+grid.addWidget(btn3, 0, 3)
+grid.addWidget(btn4, 0, 4)
+grid.addWidget(btn5, 0, 5)
+grid.addWidget(btn6, 0, 6)
+grid.addWidget(btn7, 0, 7)
 
 widget.show()
 
