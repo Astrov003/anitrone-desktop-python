@@ -1,38 +1,26 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QLabel, QGraphicsOpacityEffect
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QGridLayout, QWidget, QLabel, QGraphicsOpacityEffect, QShortcut
+from PyQt5.QtGui import QPixmap, QKeySequence
 from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, pyqtSignal, QRect
-
-def fade(widget):
-    effect = QGraphicsOpacityEffect()
-    widget.setGraphicsEffect(effect)
-
-    animation = QtCore.QPropertyAnimation(effect, b"opacity")
-    animation.setDuration(1000)
-    animation.setStartValue(0)
-    animation.setEndValue(1)
-    animation.start()
-
-def unfade(self, widget):
-    self.effect = QGraphicsOpacityEffect()
-    widget.setGraphicsEffect(self.effect)
-
-    self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
-    self.animation.setDuration(1000)
-    self.animation.setStartValue(0)
-    self.animation.setEndValue(1)
-    self.animation.start()
+#from PyQt5.QtCore import Qt, pyqtSignal, QRect
+#from PyQt5.QtCore import QPropertyAnimation
 
 
-class MyWidget(QWidget):
+class MyWindow(QWidget):
+    def __init__(self):
+        super(MyWindow, self).__init__()
+        self.setWindowTitle('Anitrone')
+        self.setGeometry(200, 200, 820, 120)
+        self.setStyleSheet("background: black;")
+        self.setLayout(grid)
+        self.initUI()
 
-    def image(column):
-        grid.addWidget(images[0], 0, column)
+    def initUI(self):
+        self.msgSc = QShortcut(QKeySequence('Ctrl+1'), self)
+        self.msgSc.activated.connect(lambda *_: trigger_glow())
+    
 
-    def mousePressEvent(self, event):
-        print ("clicked")
-        img0.setPixmap(image0_glow)
+
 
 class Image0(QLabel):
     def mousePressEvent(self, event):
@@ -67,24 +55,45 @@ class Image7(QLabel):
     def mousePressEvent(self, event):
         print ("clicked7")
 
+class FadeInImage(QLabel):
+    def __init__(self):
+        super().__init__()
+        self.effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.effect)
+        self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
+        self.animation.setDuration(1000)
+        self.animation.setStartValue(0)
+        self.animation.setEndValue(1)
+        self.animation.start()
+
+
+def trigger_glow():
+    global btn0_image
+    if btn0_image == 0:
+        img0_glow = FadeInImage()
+        img0_glow.setPixmap(image0_glow)
+        grid.addWidget(img0_glow, 0, 0)
+        
+        
+    
+
 #==== GLOBAL VARIABLES====
 
+btn0_image = 0
+btn1_image = 0
+btn2_image = 0
+btn3_image = 0
+btn4_image = 0
+btn5_image = 0
+btn6_image = 0
+btn7_image = 0
 
 #==== MAIN ================
 
 app = QApplication(sys.argv)
-
-#windget = QWidget()
-widget = QWidget()
-widget.setWindowTitle('Anitrone')
-widget.setGeometry(200, 200, 820, 120)
-widget.setStyleSheet("background: black;")
-
-# GRID
-
 grid = QGridLayout()
-widget.setLayout(grid)
 
+win = MyWindow()
 
 # BUTTONS
 
@@ -94,6 +103,8 @@ button0 = button0.scaledToHeight(120)
 
 btn0 = Image0()
 btn0.setPixmap(button0)
+
+
 btn1 = Image1()
 btn1.setPixmap(button0)
 btn2 = Image2()
@@ -146,8 +157,8 @@ images = [img0, img1, img2, img3, img4]
 image0_glow = QPixmap('./images/dot_glow.png')
 image0_glow = image0_glow .scaledToWidth(120)
 image0_glow = image0_glow .scaledToHeight(120)
-img0_glow = QLabel()
-img0_glow.setPixmap(image0_glow)
+
+
 image1_glow = QPixmap('./images/down_full_glow.png')
 image1_glow = image1_glow .scaledToWidth(120)
 image1_glow = image1_glow .scaledToHeight(120)
@@ -170,7 +181,7 @@ img4_glow = QLabel()
 img4_glow.setPixmap(image4_glow)
 
 
-images_glow = [img0_glow, img1_glow, img2_glow, img3_glow, img4_glow]
+#images_glow = [img0_glow, img1_glow, img2_glow, img3_glow, img4_glow]
 
 grid.addWidget(btn0, 0, 0)
 grid.addWidget(btn1, 0, 1)
@@ -181,6 +192,7 @@ grid.addWidget(btn5, 0, 5)
 grid.addWidget(btn6, 0, 6)
 grid.addWidget(btn7, 0, 7)
 
-widget.show()
+
+win.show()
 
 sys.exit(app.exec_())
