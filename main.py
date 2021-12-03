@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QGridLayout, QWidget, QLabel, QGraphicsOpacityEffect, QShortcut
 from PyQt5.QtGui import QPixmap, QKeySequence
 from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
 
 
 #====== MAIN WINDOW CLASS =================
@@ -228,36 +229,36 @@ btn6_image_counter = 0
 btn7_image_counter = 0
 
 image0 = QPixmap('./images/dot.png')
-image0 = image0.scaledToWidth(120)
-image0 = image0.scaledToHeight(120)
+image0 = image0.scaledToWidth(120, Qt.SmoothTransformation)
+image0 = image0.scaledToHeight(120, Qt.SmoothTransformation)
 image1 = QPixmap('./images/down_full.png')
-image1 = image1.scaledToWidth(120)
-image1 = image1.scaledToHeight(120)
+image1 = image1.scaledToWidth(120, Qt.SmoothTransformation)
+image1 = image1.scaledToHeight(120, Qt.SmoothTransformation)
 image2 = QPixmap('./images/down_open.png')
-image2 = image2.scaledToWidth(120)
-image2 = image2.scaledToHeight(120)
+image2 = image2.scaledToWidth(120, Qt.SmoothTransformation)
+image2 = image2.scaledToHeight(120, Qt.SmoothTransformation)
 image3 = QPixmap('./images/up_full.png')
-image3 = image3.scaledToWidth(120)
-image3 = image3.scaledToHeight(120)
+image3 = image3.scaledToWidth(120, Qt.SmoothTransformation)
+image3 = image3.scaledToHeight(120, Qt.SmoothTransformation)
 image4 = QPixmap('./images/up_open.png')
-image4 = image4.scaledToWidth(120)
-image4 = image4.scaledToHeight(120)
+image4 = image4.scaledToWidth(120, Qt.SmoothTransformation)
+image4 = image4.scaledToHeight(120, Qt.SmoothTransformation)
 
 image0_glow = QPixmap('./images/dot_glow.png')
-image0_glow = image0_glow.scaledToWidth(120)
-image0_glow = image0_glow.scaledToHeight(120)
+image0_glow = image0_glow.scaledToWidth(120, Qt.SmoothTransformation)
+image0_glow = image0_glow.scaledToHeight(120, Qt.SmoothTransformation)
 image1_glow = QPixmap('./images/down_full_glow.png')
-image1_glow = image1_glow .scaledToWidth(120)
-image1_glow = image1_glow .scaledToHeight(120)
+image1_glow = image1_glow .scaledToWidth(120, Qt.SmoothTransformation)
+image1_glow = image1_glow .scaledToHeight(120, Qt.SmoothTransformation)
 image2_glow = QPixmap('./images/down_open_glow.png')
-image2_glow = image2_glow .scaledToWidth(120)
-image2_glow = image2_glow .scaledToHeight(120)
+image2_glow = image2_glow .scaledToWidth(120, Qt.SmoothTransformation)
+image2_glow = image2_glow .scaledToHeight(120, Qt.SmoothTransformation)
 image3_glow = QPixmap('./images/up_full_glow.png')
-image3_glow = image3_glow .scaledToWidth(120)
-image3_glow = image3_glow .scaledToHeight(120)
+image3_glow = image3_glow .scaledToWidth(120, Qt.SmoothTransformation)
+image3_glow = image3_glow .scaledToHeight(120, Qt.SmoothTransformation)
 image4_glow = QPixmap('./images/up_open_glow.png')
-image4_glow = image4_glow .scaledToWidth(120)
-image4_glow = image4_glow .scaledToHeight(120)
+image4_glow = image4_glow .scaledToWidth(120, Qt.SmoothTransformation)
+image4_glow = image4_glow .scaledToHeight(120, Qt.SmoothTransformation)
 
 arr_images_base = [image0, image1, image2, image3, image4]
 arr_images_glow = [image0_glow, image1_glow, image2_glow, image3_glow, image4_glow]
