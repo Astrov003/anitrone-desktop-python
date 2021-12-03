@@ -1,7 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QGridLayout, QWidget, QLabel, QGraphicsOpacityEffect, QShortcut
 from PyQt5.QtGui import QPixmap, QKeySequence
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtTest
+import time
 #from PyQt5.QtCore import Qt, pyqtSignal, QRect
 #from PyQt5.QtCore import QPropertyAnimation
 
@@ -20,7 +21,7 @@ class MyWindow(QWidget):
         self.msgSc.activated.connect(lambda *_: trigger_glow())
     
 
-
+# INIT BUTTONS + CLICK DEFINED
 
 class Image0(QLabel):
     def mousePressEvent(self, event):
@@ -55,9 +56,15 @@ class Image7(QLabel):
     def mousePressEvent(self, event):
         print ("clicked7")
 
-class FadeInImage(QLabel):
+
+# FADE IN IMAGES
+
+class FadeInImage0(QLabel):
     def __init__(self):
         super().__init__()
+        self.fadeIn()
+        QtCore.QTimer.singleShot(1000, lambda:self.fadeOut())
+    def fadeIn(self):   
         self.effect = QGraphicsOpacityEffect()
         self.setGraphicsEffect(self.effect)
         self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
@@ -65,12 +72,23 @@ class FadeInImage(QLabel):
         self.animation.setStartValue(0)
         self.animation.setEndValue(1)
         self.animation.start()
+    def fadeOut(self):
+        self.effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.effect)
+        self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
+        self.animation.setDuration(1000)
+        self.animation.setStartValue(1)
+        self.animation.setEndValue(0)
+        self.animation.start()
 
 
 def trigger_glow():
     global btn0_image
     if btn0_image == 0:
-        img0_glow = FadeInImage()
+        image0_glow = QPixmap('./images/dot_glow.png')
+        image0_glow = image0_glow.scaledToWidth(120)
+        image0_glow = image0_glow.scaledToHeight(120)
+        img0_glow = FadeInImage0()
         img0_glow.setPixmap(image0_glow)
         grid.addWidget(img0_glow, 0, 0)
         
@@ -154,9 +172,7 @@ images = [img0, img1, img2, img3, img4]
 
 ### GLOW IMAGES
 
-image0_glow = QPixmap('./images/dot_glow.png')
-image0_glow = image0_glow .scaledToWidth(120)
-image0_glow = image0_glow .scaledToHeight(120)
+
 
 
 image1_glow = QPixmap('./images/down_full_glow.png')
