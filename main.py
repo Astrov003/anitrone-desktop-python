@@ -5,21 +5,121 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 
 
-#====== MAIN WINDOW CLASS =================
-class MyWindow(QWidget):
-    def __init__(self):
-        super(MyWindow, self).__init__()
-        self.setWindowTitle('Anitrone')
-        self.setGeometry(200, 200, 820, 120)
-        self.setStyleSheet("background: black;")
-        self.setLayout(grid)
-        self.initUI()
+ATTACK = 100
+HOLD = 0
+RELEASE = 100
 
-    # === Keyboard Shortcut Event ======
-    def initUI(self):
-        self.msgSc = QShortcut(QKeySequence('Ctrl+1'), self)
-        self.msgSc.activated.connect(lambda *_: trigger_glow())
-    
+
+#=== ANIMATION PLAY ======
+
+def play(TEMPO):
+    if TEMPO == 120:
+        switch_interval = 1000
+    if TEMPO == 150:
+        switch_interval = 800
+    if TEMPO == 180:
+        switch_interval = 666
+    trigger_glow0()
+    QtCore.QTimer.singleShot(switch_interval, lambda: trigger_glow1())
+    QtCore.QTimer.singleShot(switch_interval*2, lambda: trigger_glow2())
+    QtCore.QTimer.singleShot(switch_interval*3, lambda: trigger_glow3())
+    QtCore.QTimer.singleShot(switch_interval*4, lambda: trigger_glow4())
+    QtCore.QTimer.singleShot(switch_interval*5, lambda: trigger_glow5())
+    QtCore.QTimer.singleShot(switch_interval*6, lambda: trigger_glow6())
+    QtCore.QTimer.singleShot(switch_interval*7, lambda: trigger_glow7())
+
+
+#=== TRIGGER GLOW SEPARATE FOR ALL 8 BTNs =====
+
+def trigger_glow0():
+    global btn0_image_counter
+    for i in range(5):
+        if btn0_image_counter == i:     
+            btn0_glow = FadeInImage0()
+            btn0_glow.setPixmap(arr_images_glow[i])
+            grid.addWidget(btn0_glow, 0, 0)
+
+def trigger_glow1():
+    global btn1_image_counter
+    for i in range(5):
+        if btn1_image_counter == i:     
+            btn1_glow = FadeInImage0()
+            btn1_glow.setPixmap(arr_images_glow[i])
+            grid.addWidget(btn1_glow, 0, 1)
+
+def trigger_glow2():
+    global btn2_image_counter
+    for i in range(5):
+        if btn2_image_counter == i:     
+            btn2_glow = FadeInImage0()
+            btn2_glow.setPixmap(arr_images_glow[i])
+            grid.addWidget(btn2_glow, 0, 2)
+
+def trigger_glow3():
+    global btn3_image_counter
+    for i in range(5):
+        if btn3_image_counter == i:     
+            btn3_glow = FadeInImage0()
+            btn3_glow.setPixmap(arr_images_glow[i])
+            grid.addWidget(btn3_glow, 0, 3)
+
+def trigger_glow4():
+    global btn4_image_counter
+    for i in range(5):
+        if btn4_image_counter == i:     
+            btn4_glow = FadeInImage0()
+            btn4_glow.setPixmap(arr_images_glow[i])
+            grid.addWidget(btn4_glow, 0, 4)
+
+def trigger_glow5():
+    global btn5_image_counter
+    for i in range(5):
+        if btn5_image_counter == i:     
+            btn5_glow = FadeInImage0()
+            btn5_glow.setPixmap(arr_images_glow[i])
+            grid.addWidget(btn5_glow, 0, 5)
+
+def trigger_glow6():
+    global btn6_image_counter
+    for i in range(5):
+        if btn6_image_counter == i:     
+            btn6_glow = FadeInImage0()
+            btn6_glow.setPixmap(arr_images_glow[i])
+            grid.addWidget(btn6_glow, 0, 6)
+
+def trigger_glow7():
+    global btn7_image_counter
+    for i in range(5):
+        if btn7_image_counter == i:     
+            btn7_glow = FadeInImage0()
+            btn7_glow.setPixmap(arr_images_glow[i])
+            grid.addWidget(btn7_glow, 0, 7)
+
+
+#====== FADE IN LOGIC =====================
+
+class FadeInImage0(QLabel):
+    def __init__(self):
+        super().__init__()
+        self.fadeIn()
+        QtCore.QTimer.singleShot(1000, lambda:self.fadeOut())
+    def fadeIn(self):   
+        self.effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.effect)
+        self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
+        self.animation.setDuration(1000)
+        self.animation.setStartValue(0)
+        self.animation.setEndValue(1)
+        self.animation.start()
+    def fadeOut(self):
+        self.effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.effect)
+        self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
+        self.animation.setDuration(1000)
+        self.animation.setStartValue(1)
+        self.animation.setEndValue(0)
+        self.animation.start()
+
 
 #====== IMAGE CLASS + IMAGE CLICK EVENT ======
 
@@ -176,39 +276,25 @@ class Image7(QLabel):
             btn7_image_counter = 0
 
 
-#====== FADE IN LOGIC =====================
-
-class FadeInImage0(QLabel):
+    
+#====== MAIN WINDOW CLASS =================
+class MyWindow(QWidget):
     def __init__(self):
-        super().__init__()
-        self.fadeIn()
-        QtCore.QTimer.singleShot(1000, lambda:self.fadeOut())
-    def fadeIn(self):   
-        self.effect = QGraphicsOpacityEffect()
-        self.setGraphicsEffect(self.effect)
-        self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
-        self.animation.setDuration(1000)
-        self.animation.setStartValue(0)
-        self.animation.setEndValue(1)
-        self.animation.start()
-    def fadeOut(self):
-        self.effect = QGraphicsOpacityEffect()
-        self.setGraphicsEffect(self.effect)
-        self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
-        self.animation.setDuration(1000)
-        self.animation.setStartValue(1)
-        self.animation.setEndValue(0)
-        self.animation.start()
+        super(MyWindow, self).__init__()
+        self.setWindowTitle('Anitrone')
+        self.setGeometry(200, 200, 820, 120)
+        self.setStyleSheet("background: black;")
+        self.setLayout(grid)
+        self.initUI()
 
-
-def trigger_glow():
-    global btn0_image_counter
-    if btn0_image_counter == 0:     
-        btn0_glow = FadeInImage0()
-        btn0_glow.setPixmap(arr_images_glow[0])
-        grid.addWidget(btn0_glow, 0, 0)
-        
-        
+    # === Keyboard Shortcut Event ======
+    def initUI(self):
+        self.tempo120 = QShortcut(QKeySequence('Ctrl+1'), self)
+        self.tempo120.activated.connect(lambda *_: play(120))
+        self.tempo150 = QShortcut(QKeySequence('Ctrl+2'), self)
+        self.tempo150.activated.connect(lambda *_: play(150))
+        self.tempo180 = QShortcut(QKeySequence('Ctrl+3'), self)
+        self.tempo180.activated.connect(lambda *_: play(180))
 
 
 #==== MAIN ================
