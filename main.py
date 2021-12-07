@@ -1,9 +1,20 @@
 import os
 import sys
+import time
 from PyQt5.QtWidgets import QApplication, QGridLayout, QWidget, QLabel, QGraphicsOpacityEffect, QShortcut
 from PyQt5.QtGui import QPixmap, QKeySequence
 from PyQt5 import QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal
+
+#=== VIDEO RECORDER IMPORTS
+from PIL import ImageGrab
+import numpy as np
+import cv2
+import ctypes
+from ctypes.wintypes import HWND, DWORD, RECT
+import pywintypes
+from win32 import win32gui
+import datetime
 
 #=== ANIMATION PARAMETERS ====
 
@@ -13,8 +24,8 @@ RELEASE = 1000
 
 
 #=== ANIMATION PLAY ==========
-
-def play(TEMPO):
+def play():
+    TEMPO = 120
     if TEMPO == 120:
         switch_interval = 1000
     if TEMPO == 150:
@@ -293,11 +304,72 @@ class MyWindow(QWidget):
     # === Keyboard Shortcut Event ======
     def initUI(self):
         self.tempo120 = QShortcut(QKeySequence('Ctrl+1'), self)
-        self.tempo120.activated.connect(lambda *_: play(120))
+        self.tempo120.activated.connect(lambda *_: self.start())
         self.tempo150 = QShortcut(QKeySequence('Ctrl+2'), self)
-        self.tempo150.activated.connect(lambda *_: play(150))
+        self.tempo150.activated.connect(lambda *_: self.start())
         self.tempo180 = QShortcut(QKeySequence('Ctrl+3'), self)
-        self.tempo180.activated.connect(lambda *_: play(180))
+        self.tempo180.activated.connect(lambda *_: self.start())
+
+    # === function that calls play() animation on main thread, and defines worker thread and calls record()
+    def start(self):
+        play()
+        #Record.run()
+        
+        # Create a QThread object
+        self.thread = QThread()
+        # Create a worker object
+        self.worker = Record()
+        # Move worker to the thread
+        self.worker.moveToThread(self.thread)
+        # Connect signals and slots
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        #self.worker.finished.connect(self.worker.deleteLater)
+        #self.worker.finished.connect(self.thread.deleteLater)
+        #self.worker.progress.connect(self.reportProgress)
+        # Start the thread
+        self.thread.start()
+
+
+#=== VIDEO RENDERER ======
+
+class Record(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(int)
+
+    def run(self):
+        # Getting app window position
+        print('run connect')
+        dwmapi = ctypes.WinDLL("dwmapi")
+        hwnd = win32gui.FindWindow(None, 'Anitrone')
+        rect = RECT()
+        DMWA_EXTENDED_FRAME_BOUNDS = 9
+        dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
+
+        print(rect.left, rect.top, rect.right, rect.bottom)
+
+        time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        file_name = f'{time_stamp}.mp4'
+        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+        captured_video = cv2.VideoWriter(file_name, fourcc, 30.0, (rect.right-rect.left, rect.bottom-rect.top-34))
+
+        start_time = time.time()
+        seconds = 8
+        while True:
+            current_time = time.time()
+            elapsed_time = current_time - start_time
+            
+            img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
+            img_np = np.array(img)
+            img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+            #cv2.imshow('Capturer', img_final)
+            captured_video.write(img_final)
+
+            if elapsed_time > seconds:
+                self.finished.emit()
+                break
+                
+
 
 
 #======= FIX WHEN COMPILING ONE FILE ======
