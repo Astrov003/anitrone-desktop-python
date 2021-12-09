@@ -6,15 +6,7 @@ from PyQt5.QtGui import QPixmap, QKeySequence
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal
 
-#=== VIDEO RECORDER IMPORTS
-from PIL import ImageGrab
-import numpy as np
-import cv2
-import ctypes
-from ctypes.wintypes import HWND, DWORD, RECT
-import pywintypes
-from win32 import win32gui
-import datetime
+from render import record
 
 #=== ANIMATION PARAMETERS ====
 
@@ -31,7 +23,7 @@ def play():
         switch_interval = 800
     if MyWindow.TEMPO == 180:
         switch_interval = 666
-    print("switch interval is: "+ str(switch_interval))
+
     trigger_glow0()
     QtCore.QTimer.singleShot(switch_interval, lambda: trigger_glow1())
     QtCore.QTimer.singleShot(switch_interval*2, lambda: trigger_glow2())
@@ -320,13 +312,13 @@ class MyWindow(QWidget):
         # Create a QThread object
         self.thread = QThread()
         # Create a worker object
-        self.worker = Record()
+        self.worker = Render()
         # Move worker to the thread
         self.worker.moveToThread(self.thread)
         # Connect signals and slots
-        self.thread.started.connect(self.worker.record)
+        self.thread.started.connect(self.worker.render)
         self.worker.finished.connect(self.thread.quit)
-        #self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.worker.deleteLater)
         #self.worker.finished.connect(self.thread.deleteLater)
         #self.worker.progress.connect(self.reportProgress)
         # Start the thread
@@ -335,50 +327,25 @@ class MyWindow(QWidget):
 
 #=== VIDEO RENDERER ======
 
-class Record(QObject):
+class Render(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(int)
     
     duration = 0
 
-    def record(self):
+    def render(self):
 
         if MyWindow.TEMPO == 120:
-            Record.duration = 8
+            Render.duration = 8
         if MyWindow.TEMPO == 150:
-            Record.duration = 6.4
+            Render.duration = 6.4
         if MyWindow.TEMPO == 180:
-            Record.duration = 5.3
+            Render.duration = 5.3
         
-        # Getting app window position
-        dwmapi = ctypes.WinDLL("dwmapi")
-        hwnd = win32gui.FindWindow(None, 'Anitrone')
-        rect = RECT()
-        DMWA_EXTENDED_FRAME_BOUNDS = 9
-        dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
-
-        #print(rect.left, rect.top, rect.right, rect.bottom)
-
-        time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-        file_name = f'{time_stamp}.avi'
-        fourcc = cv2.VideoWriter_fourcc(*'FFV1')
-        captured_video = cv2.VideoWriter(file_name, fourcc, 30.0, (rect.right-rect.left, rect.bottom-rect.top-34))
-
-        start_time = time.time()
+        record(Render.duration)
+        self.finished.emit()
         
-        while True:
-            current_time = time.time()
-            elapsed_time = current_time - start_time
-            
-            img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
-            img_np = np.array(img)
-            img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
-            #autocv2.imshow('Capturer', img_final)
-            captured_video.write(img_final)
 
-            if elapsed_time > Record.duration:
-                self.finished.emit()
-                break
                 
 
 

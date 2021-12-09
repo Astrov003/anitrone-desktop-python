@@ -6,36 +6,34 @@ from ctypes.wintypes import HWND, DWORD, RECT
 import pywintypes
 from win32 import win32gui
 import datetime
-from main import Record
+import time
 
-print(Record.duration)
+def record(duration):
+    # Getting app window position
+    dwmapi = ctypes.WinDLL("dwmapi")
+    hwnd = win32gui.FindWindow(None, 'Anitrone')
+    rect = RECT()
+    DMWA_EXTENDED_FRAME_BOUNDS = 9
+    dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
 
-dwmapi = ctypes.WinDLL("dwmapi")
+    #print(rect.left, rect.top, rect.right, rect.bottom)
 
-hwnd = win32gui.FindWindow(None, 'Anitrone')
+    time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+    file_name = f'{time_stamp}.avi'
+    fourcc = cv2.VideoWriter_fourcc(*'FFV1')
+    captured_video = cv2.VideoWriter(file_name, fourcc, 30.0, (rect.right-rect.left, rect.bottom-rect.top-34))
 
-rect = RECT()
-DMWA_EXTENDED_FRAME_BOUNDS = 9
-dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
+    start_time = time.time()
 
-print(rect.left, rect.top, rect.right, rect.bottom)
+    while True:
+        current_time = time.time()
+        elapsed_time = current_time - start_time
+        
+        img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
+        img_np = np.array(img)
+        img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+        #autocv2.imshow('Capturer', img_final)
+        captured_video.write(img_final)
 
-time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-file_name = f'{time_stamp}.mp4'
-fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-captured_video = cv2.VideoWriter(file_name, fourcc, 30.0, (rect.right-rect.left, rect.bottom-rect.top-50))
-
-width = 800
-height = 600
-
-while True:
-    #img = ImageGrab.grab(bbox=(0, 0, width, height))
-    img = ImageGrab.grab(bbox=(rect.left, rect.top+50, rect.right, rect.bottom))
-    img_np = np.array(img)
-    img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
-    cv2.imshow('Capturer', img_final)
-    
-    captured_video.write(img_final)
-    
-    if cv2.waitKey(10) == ord('q'):
-        break
+        if elapsed_time > duration:
+            break
