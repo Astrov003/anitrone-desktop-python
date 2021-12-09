@@ -6,10 +6,13 @@ from ctypes.wintypes import HWND, DWORD, RECT
 import pywintypes
 from win32 import win32gui
 import datetime
+from main import Record
+
+print(Record.duration)
 
 dwmapi = ctypes.WinDLL("dwmapi")
 
-hwnd = win32gui.FindWindow(None, 'anitrone')
+hwnd = win32gui.FindWindow(None, 'Anitrone')
 
 rect = RECT()
 DMWA_EXTENDED_FRAME_BOUNDS = 9
@@ -26,8 +29,8 @@ width = 800
 height = 600
 
 while True:
-    img = ImageGrab.grab(bbox=(0, 0, width, height))
-    #img = ImageGrab.grab(bbox=(rect.left, rect.top+50, rect.right, rect.bottom))
+    #img = ImageGrab.grab(bbox=(0, 0, width, height))
+    img = ImageGrab.grab(bbox=(rect.left, rect.top+50, rect.right, rect.bottom))
     img_np = np.array(img)
     img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
     cv2.imshow('Capturer', img_final)

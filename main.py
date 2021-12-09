@@ -25,13 +25,13 @@ RELEASE = 1000
 
 #=== ANIMATION PLAY ==========
 def play():
-    TEMPO = 120
-    if TEMPO == 120:
+    if MyWindow.TEMPO == 120:
         switch_interval = 1000
-    if TEMPO == 150:
+    if MyWindow.TEMPO == 150:
         switch_interval = 800
-    if TEMPO == 180:
+    if MyWindow.TEMPO == 180:
         switch_interval = 666
+    print("switch interval is: "+ str(switch_interval))
     trigger_glow0()
     QtCore.QTimer.singleShot(switch_interval, lambda: trigger_glow1())
     QtCore.QTimer.singleShot(switch_interval*2, lambda: trigger_glow2())
@@ -293,6 +293,8 @@ class Image7(QLabel):
 #====== MAIN WINDOW CLASS =================
 
 class MyWindow(QWidget):
+    TEMPO = 0
+
     def __init__(self):
         super(MyWindow, self).__init__()
         self.setWindowTitle('Anitrone')
@@ -304,17 +306,17 @@ class MyWindow(QWidget):
     # === Keyboard Shortcut Event ======
     def initUI(self):
         self.tempo120 = QShortcut(QKeySequence('Ctrl+1'), self)
-        self.tempo120.activated.connect(lambda *_: self.start())
+        self.tempo120.activated.connect(lambda *_: self.start(120))
         self.tempo150 = QShortcut(QKeySequence('Ctrl+2'), self)
-        self.tempo150.activated.connect(lambda *_: self.start())
+        self.tempo150.activated.connect(lambda *_: self.start(150))
         self.tempo180 = QShortcut(QKeySequence('Ctrl+3'), self)
-        self.tempo180.activated.connect(lambda *_: self.start())
+        self.tempo180.activated.connect(lambda *_: self.start(180))
 
     # === function that calls play() animation on main thread, and defines worker thread and calls record()
-    def start(self):
+    def start(self, start_tempo):
+        MyWindow.TEMPO = start_tempo
         play()
-        #Record.run()
-        
+
         # Create a QThread object
         self.thread = QThread()
         # Create a worker object
@@ -322,7 +324,7 @@ class MyWindow(QWidget):
         # Move worker to the thread
         self.worker.moveToThread(self.thread)
         # Connect signals and slots
-        self.thread.started.connect(self.worker.run)
+        self.thread.started.connect(self.worker.record)
         self.worker.finished.connect(self.thread.quit)
         #self.worker.finished.connect(self.worker.deleteLater)
         #self.worker.finished.connect(self.thread.deleteLater)
@@ -336,25 +338,34 @@ class MyWindow(QWidget):
 class Record(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(int)
+    
+    duration = 0
 
-    def run(self):
+    def record(self):
+
+        if MyWindow.TEMPO == 120:
+            Record.duration = 8
+        if MyWindow.TEMPO == 150:
+            Record.duration = 6.4
+        if MyWindow.TEMPO == 180:
+            Record.duration = 5.3
+        
         # Getting app window position
-        print('run connect')
         dwmapi = ctypes.WinDLL("dwmapi")
         hwnd = win32gui.FindWindow(None, 'Anitrone')
         rect = RECT()
         DMWA_EXTENDED_FRAME_BOUNDS = 9
         dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
 
-        print(rect.left, rect.top, rect.right, rect.bottom)
+        #print(rect.left, rect.top, rect.right, rect.bottom)
 
         time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-        file_name = f'{time_stamp}.mp4'
-        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+        file_name = f'{time_stamp}.avi'
+        fourcc = cv2.VideoWriter_fourcc(*'FFV1')
         captured_video = cv2.VideoWriter(file_name, fourcc, 30.0, (rect.right-rect.left, rect.bottom-rect.top-34))
 
         start_time = time.time()
-        seconds = 8
+        
         while True:
             current_time = time.time()
             elapsed_time = current_time - start_time
@@ -362,10 +373,10 @@ class Record(QObject):
             img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
             img_np = np.array(img)
             img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
-            #cv2.imshow('Capturer', img_final)
+            #autocv2.imshow('Capturer', img_final)
             captured_video.write(img_final)
 
-            if elapsed_time > seconds:
+            if elapsed_time > Record.duration:
                 self.finished.emit()
                 break
                 
