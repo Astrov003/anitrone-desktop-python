@@ -13,6 +13,7 @@ from render import record
 ATTACK = 100
 HOLD = ATTACK + 0 # delays release from the beggining of attack, hence attack + additional time 
 RELEASE = 1000
+FADE_RANGE = 1
 
 
 #=== ANIMATION PLAY ==========
@@ -114,14 +115,14 @@ class FadeInImage0(QLabel):
         self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
         self.animation.setDuration(ATTACK)
         self.animation.setStartValue(0)
-        self.animation.setEndValue(1)
+        self.animation.setEndValue(FADE_RANGE)
         self.animation.start()
     def fadeOut(self):
         self.effect = QGraphicsOpacityEffect()
         self.setGraphicsEffect(self.effect)
         self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
         self.animation.setDuration(RELEASE)
-        self.animation.setStartValue(1)
+        self.animation.setStartValue(FADE_RANGE)
         self.animation.setEndValue(0)
         self.animation.start()
 
@@ -290,7 +291,7 @@ class MyWindow(QWidget):
     def __init__(self):
         super(MyWindow, self).__init__()
         self.setWindowTitle('Anitrone')
-        self.setGeometry(200, 200, 820, 120)
+        self.setGeometry(0, 200, 1920, 220)
         self.setStyleSheet("background: black;")
         self.setLayout(grid)
         self.initUI()
@@ -380,36 +381,36 @@ btn6_image_counter = 0
 btn7_image_counter = 0
 
 image0 = QPixmap(resource_path('images/dot.png'))
-image0 = image0.scaledToWidth(120, Qt.SmoothTransformation)
-image0 = image0.scaledToHeight(120, Qt.SmoothTransformation)
+image0 = image0.scaledToWidth(220, Qt.SmoothTransformation)
+image0 = image0.scaledToHeight(220, Qt.SmoothTransformation)
 image1 = QPixmap(resource_path('images/down_full.png'))
-image1 = image1.scaledToWidth(120, Qt.SmoothTransformation)
-image1 = image1.scaledToHeight(120, Qt.SmoothTransformation)
+image1 = image1.scaledToWidth(220, Qt.SmoothTransformation)
+image1 = image1.scaledToHeight(220, Qt.SmoothTransformation)
 image2 = QPixmap(resource_path('images/down_open.png'))
-image2 = image2.scaledToWidth(120, Qt.SmoothTransformation)
-image2 = image2.scaledToHeight(120, Qt.SmoothTransformation)
+image2 = image2.scaledToWidth(220, Qt.SmoothTransformation)
+image2 = image2.scaledToHeight(220, Qt.SmoothTransformation)
 image3 = QPixmap(resource_path('images/up_full.png'))
-image3 = image3.scaledToWidth(120, Qt.SmoothTransformation)
-image3 = image3.scaledToHeight(120, Qt.SmoothTransformation)
+image3 = image3.scaledToWidth(220, Qt.SmoothTransformation)
+image3 = image3.scaledToHeight(220, Qt.SmoothTransformation)
 image4 = QPixmap(resource_path('images/up_open.png'))
-image4 = image4.scaledToWidth(120, Qt.SmoothTransformation)
-image4 = image4.scaledToHeight(120, Qt.SmoothTransformation)
+image4 = image4.scaledToWidth(220, Qt.SmoothTransformation)
+image4 = image4.scaledToHeight(220, Qt.SmoothTransformation)
 
 image0_glow = QPixmap(resource_path('images/dot_glow.png'))
-image0_glow = image0_glow.scaledToWidth(120, Qt.SmoothTransformation)
-image0_glow = image0_glow.scaledToHeight(120, Qt.SmoothTransformation)
+image0_glow = image0_glow.scaledToWidth(220, Qt.SmoothTransformation)
+image0_glow = image0_glow.scaledToHeight(220, Qt.SmoothTransformation)
 image1_glow = QPixmap(resource_path('images/down_full_glow.png'))
-image1_glow = image1_glow .scaledToWidth(120, Qt.SmoothTransformation)
-image1_glow = image1_glow .scaledToHeight(120, Qt.SmoothTransformation)
+image1_glow = image1_glow .scaledToWidth(220, Qt.SmoothTransformation)
+image1_glow = image1_glow .scaledToHeight(220, Qt.SmoothTransformation)
 image2_glow = QPixmap(resource_path('images/down_open_glow.png'))
-image2_glow = image2_glow .scaledToWidth(120, Qt.SmoothTransformation)
-image2_glow = image2_glow .scaledToHeight(120, Qt.SmoothTransformation)
+image2_glow = image2_glow .scaledToWidth(220, Qt.SmoothTransformation)
+image2_glow = image2_glow .scaledToHeight(220, Qt.SmoothTransformation)
 image3_glow = QPixmap(resource_path('images/up_full_glow.png'))
-image3_glow = image3_glow .scaledToWidth(120, Qt.SmoothTransformation)
-image3_glow = image3_glow .scaledToHeight(120, Qt.SmoothTransformation)
+image3_glow = image3_glow .scaledToWidth(220, Qt.SmoothTransformation)
+image3_glow = image3_glow .scaledToHeight(220, Qt.SmoothTransformation)
 image4_glow = QPixmap(resource_path('images/up_open_glow.png'))
-image4_glow = image4_glow .scaledToWidth(120, Qt.SmoothTransformation)
-image4_glow = image4_glow .scaledToHeight(120, Qt.SmoothTransformation)
+image4_glow = image4_glow .scaledToWidth(220, Qt.SmoothTransformation)
+image4_glow = image4_glow .scaledToHeight(220, Qt.SmoothTransformation)
 
 arr_images_base = [image0, image1, image2, image3, image4]
 arr_images_glow = [image0_glow, image1_glow, image2_glow, image3_glow, image4_glow]
