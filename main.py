@@ -19,11 +19,11 @@ FADE_RANGE = 1
 #=== ANIMATION PLAY ==========
 def play():
     if MyWindow.TEMPO == 120:
-        switch_interval = 1000
+        switch_interval = 1500
     if MyWindow.TEMPO == 150:
-        switch_interval = 800
+        switch_interval = 1200
     if MyWindow.TEMPO == 180:
-        switch_interval = 666
+        switch_interval = 999
 
     trigger_glow0()
     QtCore.QTimer.singleShot(switch_interval, lambda: trigger_glow1())
@@ -308,8 +308,8 @@ class MyWindow(QWidget):
     # === function that calls play() animation on main thread, and defines worker thread and calls record()
     def start(self, start_tempo):
         MyWindow.TEMPO = start_tempo
-        play()
-
+        stime = str(time.time())
+        
         # Create a QThread object
         self.thread = QThread()
         # Create a worker object
@@ -324,6 +324,12 @@ class MyWindow(QWidget):
         #self.worker.progress.connect(self.reportProgress)
         # Start the thread
         self.thread.start()
+        
+        print("S: " + stime)
+       
+        QtCore.QTimer.singleShot(100, lambda: play())
+       
+            
 
 
 #=== VIDEO RENDERER ======
@@ -337,18 +343,15 @@ class Render(QObject):
     def render(self):
 
         if MyWindow.TEMPO == 120:
-            Render.duration = 8
+            Render.duration = 12
         if MyWindow.TEMPO == 150:
-            Render.duration = 6.4
+            Render.duration = 9.6
         if MyWindow.TEMPO == 180:
-            Render.duration = 5.3
+            Render.duration = 7.95
         
         record(Render.duration)
         self.finished.emit()
         
-
-                
-
 
 
 #======= FIX WHEN COMPILING ONE FILE ======
