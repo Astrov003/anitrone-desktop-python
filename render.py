@@ -19,13 +19,17 @@ def record(duration):
     #print(rect.left, rect.top, rect.right, rect.bottom)
 
     time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-    file_name = f'{time_stamp}.avi'
+    file_name = f'{time_stamp}.mp4'
     fourcc = cv2.VideoWriter_fourcc(*'FFV1')
     captured_video = cv2.VideoWriter(file_name, fourcc, 30.0, (rect.right-rect.left, rect.bottom-rect.top-34))
 
     start_time = time.time()
 
+    stime = str(time.time())
+    print("R: " + stime)
     while True:
+        
+        
         current_time = time.time()
         elapsed_time = current_time - start_time
         
