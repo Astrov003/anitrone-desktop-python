@@ -6,34 +6,23 @@ from PyQt5.QtGui import QPixmap, QKeySequence
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal
 
-from render import record
+# Render imports
+from PIL import ImageGrab
+import numpy as np
+import cv2
+import ctypes
+from ctypes.wintypes import HWND, DWORD, RECT
+import pywintypes
+from win32 import win32gui
+import datetime
+
 
 #=== ANIMATION PARAMETERS ====
 
-ATTACK = 100
+ATTACK = 200
 HOLD = ATTACK + 0 # delays release from the beggining of attack, hence attack + additional time 
-RELEASE = 1000
+RELEASE = 1700
 FADE_RANGE = 1
-
-
-#=== ANIMATION PLAY ==========
-def play():
-    if MyWindow.TEMPO == 120:
-        switch_interval = 1500
-    if MyWindow.TEMPO == 150:
-        switch_interval = 1200
-    if MyWindow.TEMPO == 180:
-        switch_interval = 999
-
-    trigger_glow0()
-    QtCore.QTimer.singleShot(switch_interval, lambda: trigger_glow1())
-    QtCore.QTimer.singleShot(switch_interval*2, lambda: trigger_glow2())
-    QtCore.QTimer.singleShot(switch_interval*3, lambda: trigger_glow3())
-    QtCore.QTimer.singleShot(switch_interval*4, lambda: trigger_glow4())
-    QtCore.QTimer.singleShot(switch_interval*5, lambda: trigger_glow5())
-    QtCore.QTimer.singleShot(switch_interval*6, lambda: trigger_glow6())
-    QtCore.QTimer.singleShot(switch_interval*7, lambda: trigger_glow7())
-
 
 #=== TRIGGER GLOW SEPARATE FOR ALL 8 BTNs =====
 
@@ -281,7 +270,6 @@ class Image7(QLabel):
             btn7.setPixmap(arr_images_base[0])
             btn7_image_counter = 0
 
-
     
 #====== MAIN WINDOW CLASS =================
 
@@ -308,8 +296,7 @@ class MyWindow(QWidget):
     # === function that calls play() animation on main thread, and defines worker thread and calls record()
     def start(self, start_tempo):
         MyWindow.TEMPO = start_tempo
-        stime = str(time.time())
-        
+
         # Create a QThread object
         self.thread = QThread()
         # Create a worker object
@@ -318,43 +305,127 @@ class MyWindow(QWidget):
         self.worker.moveToThread(self.thread)
         # Connect signals and slots
         self.thread.started.connect(self.worker.render)
+        
+        self.worker.trigger_glow0.connect(trigger_glow0)
+        self.worker.trigger_glow1.connect(trigger_glow1)
+        self.worker.trigger_glow2.connect(trigger_glow2)
+        self.worker.trigger_glow3.connect(trigger_glow3)
+        self.worker.trigger_glow4.connect(trigger_glow4)
+        self.worker.trigger_glow5.connect(trigger_glow5)
+        self.worker.trigger_glow6.connect(trigger_glow6)
+        self.worker.trigger_glow7.connect(trigger_glow7)
+
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
-        #self.worker.finished.connect(self.thread.deleteLater)
+        self.worker.finished.connect(self.thread.deleteLater)
         #self.worker.progress.connect(self.reportProgress)
         # Start the thread
         self.thread.start()
-        
-        print("S: " + stime)
        
-        QtCore.QTimer.singleShot(100, lambda: play())
-       
-            
-
 
 #=== VIDEO RENDERER ======
 
 class Render(QObject):
     finished = pyqtSignal()
-    progress = pyqtSignal(int)
+
+    trigger_glow0 = pyqtSignal()
+    trigger_glow1 = pyqtSignal()
+    trigger_glow2 = pyqtSignal()
+    trigger_glow3 = pyqtSignal()
+    trigger_glow4 = pyqtSignal()
+    trigger_glow5 = pyqtSignal()
+    trigger_glow6 = pyqtSignal()
+    trigger_glow7 = pyqtSignal()
     
-    duration = 0
-
     def render(self):
+        # Getting app window position
+        dwmapi = ctypes.WinDLL("dwmapi")
+        hwnd = win32gui.FindWindow(None, 'Anitrone')
+        rect = RECT()
+        DMWA_EXTENDED_FRAME_BOUNDS = 9
+        dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
 
+        #print(rect.left, rect.top, rect.right, rect.bottom)
+        FPS = 30
+        time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        file_name = f'{time_stamp}.avi'
+        fourcc = cv2.VideoWriter_fourcc(*'FFV1')
+        captured_video = cv2.VideoWriter(file_name, fourcc, FPS, (rect.right-rect.left, rect.bottom-rect.top-34))
+        
         if MyWindow.TEMPO == 120:
-            Render.duration = 12
-        if MyWindow.TEMPO == 150:
-            Render.duration = 9.6
-        if MyWindow.TEMPO == 180:
-            Render.duration = 7.95
-        
-        record(Render.duration)
+            duration = 8
+        elif MyWindow.TEMPO == 150:
+            duration = 6.4
+        elif MyWindow.TEMPO == 180:
+            duration = 5.35
+
+        for i in range(int(duration * FPS)):
+            img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
+            img_np = np.array(img)
+            img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+            
+            if duration == 8:
+                if i == 0:
+                    self.trigger_glow0.emit()
+                elif i == 30:
+                    self.trigger_glow1.emit()
+                elif i == 60:
+                    self.trigger_glow2.emit()
+                elif i == 90:
+                    self.trigger_glow3.emit()
+                elif i == 120:
+                    self.trigger_glow4.emit()
+                elif i == 150:
+                    self.trigger_glow5.emit()
+                elif i == 180:
+                    self.trigger_glow6.emit()
+                elif i == 210:
+                    self.trigger_glow7.emit()
+           
+            elif duration == 6.4:
+                if i == 0:
+                    self.trigger_glow0.emit()
+                elif i == 24:
+                    self.trigger_glow1.emit()
+                elif i == 48:
+                    self.trigger_glow2.emit()
+                elif i == 72:
+                    self.trigger_glow3.emit()
+                elif i == 96:
+                    self.trigger_glow4.emit()
+                elif i == 120:
+                    self.trigger_glow5.emit()
+                elif i == 144:
+                    self.trigger_glow6.emit()
+                elif i == 168:
+                    self.trigger_glow7.emit()
+           
+            elif duration == 5.35:
+                if i == 0:
+                    self.trigger_glow0.emit()
+                elif i == 20:
+                    self.trigger_glow1.emit()
+                elif i == 40:
+                    self.trigger_glow2.emit()
+                elif i == 60:
+                    self.trigger_glow3.emit()
+                elif i == 80:
+                    self.trigger_glow4.emit()
+                elif i == 100:
+                    self.trigger_glow5.emit()
+                elif i == 120:
+                    self.trigger_glow6.emit()
+                elif i == 140:
+                    self.trigger_glow7.emit()
+    
+            captured_video.write(img_final)
+        cv2.destroyAllWindows()
+        captured_video.release()
+
         self.finished.emit()
-        
+       
 
-
-#======= FIX WHEN COMPILING ONE FILE ======
+#======= FIX WHEN COMPILING TO ONE FILE ======
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -417,10 +488,9 @@ image4_glow = image4_glow .scaledToHeight(220, Qt.SmoothTransformation)
 
 arr_images_base = [image0, image1, image2, image3, image4]
 arr_images_glow = [image0_glow, image1_glow, image2_glow, image3_glow, image4_glow]
-#======================================================================
 
 
-#=== INIATIALIZE IMAGES =====
+#======= INIATIALIZE IMAGES =========
 btn0 = Image0()
 btn0.setPixmap(arr_images_base[0])
 btn1 = Image1()
@@ -446,7 +516,6 @@ grid.addWidget(btn4, 0, 4)
 grid.addWidget(btn5, 0, 5)
 grid.addWidget(btn6, 0, 6)
 grid.addWidget(btn7, 0, 7)
-
 
 
 #=== SYSTEM COMMANDS =====
