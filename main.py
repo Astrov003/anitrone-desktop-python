@@ -1,9 +1,19 @@
 from PyQt5.QtWidgets import QLabel, QApplication, QGridLayout, QWidget, QGraphicsOpacityEffect, QShortcut
 from PyQt5.QtGui import QPixmap, QKeySequence
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal
 from PyQt5 import QtCore
 import sys
 import os
+
+# Render imports
+from PIL import ImageGrab
+import numpy as np
+import cv2
+import ctypes
+from ctypes.wintypes import HWND, DWORD, RECT
+import pywintypes
+from win32 import win32gui
+import datetime
 
 
 ATTACK = 200
@@ -64,31 +74,32 @@ images_glow = [image0_glow, image1_glow, image2_glow, image3_glow, image4_glow]
 
 
 class Element(QLabel):
-    index = 0
+    imgIndex = 0
+    elementIndex = 0
 
     def __init__(self):
         super(Element, self).__init__()
         self.setPixmap(image0)
     def mousePressEvent(self, event):
-        if self.index == 0:
+        if self.imgIndex == 0:
             self.setPixmap(image1)
-            self.index = 1
-        elif self.index == 1:
+            self.imgIndex = 1
+        elif self.imgIndex == 1:
             self.setPixmap(image2)
-            self.index = 2
-        elif self.index == 2:
+            self.imgIndex = 2
+        elif self.imgIndex == 2:
             self.setPixmap(image3)
-            self.index = 3
-        elif self.index == 3:
+            self.imgIndex = 3
+        elif self.imgIndex == 3:
             self.setPixmap(image4)
-            self.index = 4
-        elif self.index == 4:
+            self.imgIndex = 4
+        elif self.imgIndex == 4:
             self.setPixmap(image0)
-            self.index = 0
-    def glow(self, element_index):
+            self.imgIndex = 0
+    def glow(self):
         glow = Fade()
-        glow.setPixmap(images_glow[Element.index])
-        grid.addWidget(glow, 0, element_index)
+        glow.setPixmap(images_glow[Element.imgIndex])
+        grid.addWidget(glow, 0, Element.elementIndex)
 
 
 class Fade(QLabel):
@@ -121,42 +132,165 @@ class MyWindow(QWidget):
         self.setGeometry(0, 200, 1920, 220)
         self.setStyleSheet("background: black;")
         self.setLayout(grid)
-        self.initUI()
-    def initUI(self):
+        self.keyStroke()
+    def keyStroke(self):
         self.tempo120 = QShortcut(QKeySequence('Ctrl+1'), self)
-        print("key")
-        self.tempo120.activated.connect(lambda *_: render())
+        self.tempo120.activated.connect(lambda *_: self.start(120))
         self.tempo150 = QShortcut(QKeySequence('Ctrl+2'), self)
-        self.tempo150.activated.connect(lambda *_: render())
+        self.tempo150.activated.connect(lambda *_: self.start(150))
         self.tempo180 = QShortcut(QKeySequence('Ctrl+3'), self)
-        self.tempo180.activated.connect(lambda *_: render())
+        self.tempo180.activated.connect(lambda *_: self.start(180))
+
+    tempo = 0
+    def start(self, tempo):
+        MyWindow.tempo = tempo
+
+        # Create a QThread object
+        self.thread = QThread()
+        # Create a worker object
+        self.worker = Render()
+        # Move worker to the thread
+        self.worker.moveToThread(self.thread)
+        # Connect signals and slots
+        self.thread.started.connect(self.worker.render)
+        
+        self.worker.glow0.connect(button0.glow)
+        self.worker.glow1.connect(button0.glow)
+        self.worker.glow2.connect(button0.glow)
+        self.worker.glow3.connect(button0.glow)
+        self.worker.glow4.connect(button0.glow)
+        self.worker.glow5.connect(button0.glow)
+        self.worker.glow6.connect(button0.glow)
+        self.worker.glow7.connect(button0.glow)
+
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.thread.deleteLater)
+        # Start the thread
+        self.thread.start()
 
 
-def render():
-    duration = 8
-    FPS = 30
-    for i in range(int(duration * FPS)):       
-        if duration == 8:
-            if i == 0:
-                button0.glow(0)
-            elif i == 30:
-                button1.glow(1)
-            elif i == 60:
-                button2.glow(2)
-            elif i == 90:
-                button3.glow(3)
-            elif i == 120:
-                button4.glow(4)
-            elif i == 150:
-                button5.glow(5)
-            elif i == 180:
-                button6.glow(6)
-            elif i == 210:
-                button7.glow(7)
+class Render(QObject):
+    finished = pyqtSignal()
+    glow0 = pyqtSignal()
+    glow1 = pyqtSignal()
+    glow2 = pyqtSignal()
+    glow3 = pyqtSignal()
+    glow4 = pyqtSignal()
+    glow5 = pyqtSignal()
+    glow6 = pyqtSignal()
+    glow7 = pyqtSignal()
+
+    def render(self):
+        # Getting app window position
+        dwmapi = ctypes.WinDLL("dwmapi")
+        hwnd = win32gui.FindWindow(None, 'Anitrone')
+        rect = RECT()
+        DMWA_EXTENDED_FRAME_BOUNDS = 9
+        dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
+
+        FPS = 30
+        time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        file_name = f'{time_stamp}.avi'
+        fourcc = cv2.VideoWriter_fourcc(*'FFV1')
+        captured_video = cv2.VideoWriter(file_name, fourcc, FPS, (rect.right-rect.left, rect.bottom-rect.top-34))
+        
+        if MyWindow.tempo == 120:
+            duration = 8
+        elif MyWindow.tempo == 150:
+            duration = 6.4
+        elif MyWindow.tempo == 180:
+            duration = 5.35
+
+        for i in range(int(duration * FPS)):
+            img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
+            img_np = np.array(img)
+            img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+
+            if duration == 8:
+                if i == 0:
+                    Element.elementIndex = 0
+                    self.glow0.emit()
+                elif i == 30:
+                    Element.elementIndex = 1
+                    self.glow1.emit()
+                elif i == 60:
+                    Element.elementIndex = 2
+                    self.glow2.emit()
+                elif i == 90:
+                    Element.elementIndex = 3
+                    self.glow3.emit()
+                elif i == 120:
+                    Element.elementIndex = 4
+                    self.glow4.emit()
+                elif i == 150:
+                    Element.elementIndex = 5
+                    self.glow5.emit()
+                elif i == 180:
+                    Element.elementIndex = 6
+                    self.glow6.emit()
+                elif i == 210:
+                    Element.elementIndex = 7
+                    self.glow7.emit()
+            elif duration == 6.4:
+                if i == 0:
+                    Element.elementIndex = 0
+                    self.glow0.emit()
+                elif i == 24:
+                    Element.elementIndex = 1
+                    self.glow1.emit()
+                elif i == 48:
+                    Element.elementIndex = 2
+                    self.glow2.emit()
+                elif i == 72:
+                    Element.elementIndex = 3
+                    self.glow3.emit()
+                elif i == 96:
+                    Element.elementIndex = 4
+                    self.glow4.emit()
+                elif i == 120:
+                    Element.elementIndex = 5
+                    self.glow5.emit()
+                elif i == 144:
+                    Element.elementIndex = 6
+                    self.glow6.emit()
+                elif i == 168:
+                    Element.elementIndex = 7
+                    self.glow7.emit()
+            elif duration == 5.35:
+                if i == 0:
+                    Element.elementIndex = 0
+                    self.glow0.emit()
+                elif i == 20:
+                    Element.elementIndex = 1
+                    self.glow1.emit()
+                elif i == 40:
+                    Element.elementIndex = 2
+                    self.glow2.emit()
+                elif i == 60:
+                    Element.elementIndex = 3
+                    self.glow3.emit()
+                elif i == 80:
+                    Element.elementIndex = 4
+                    self.glow4.emit()
+                elif i == 100:
+                    Element.elementIndex = 5
+                    self.glow5.emit()
+                elif i == 120:
+                    Element.elementIndex = 6
+                    self.glow6.emit()
+                elif i == 140:
+                    Element.elementIndex = 7
+                    self.glow7.emit()
+
+            captured_video.write(img_final)
+
+        cv2.destroyAllWindows()
+        captured_video.release()
+        self.finished.emit()
+
 
 # main
-
-
 win = MyWindow()
 
 button0 = Element()
@@ -176,7 +310,6 @@ grid.addWidget(button4, 0, 4)
 grid.addWidget(button5, 0, 5)
 grid.addWidget(button6, 0, 6)
 grid.addWidget(button7, 0, 7)
-
 
 win.show()
 sys.exit(app.exec_())
