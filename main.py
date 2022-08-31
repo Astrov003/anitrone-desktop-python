@@ -1,162 +1,315 @@
-import tkinter as tk
-from PIL import Image, ImageTk
-import time
+from PyQt5.QtWidgets import QLabel, QApplication, QGridLayout, QWidget, QGraphicsOpacityEffect, QShortcut
+from PyQt5.QtGui import QPixmap, QKeySequence
+from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal
+from PyQt5 import QtCore
 import sys
-sys.setrecursionlimit(1500)
+import os
 
-#import asyncio
-
-# --- functions ---
-
-def switch_img(i):
-
-    if(img_label[i].image == images[0]):
-        img_label[i].configure(image=images[1])
-        img_label[i].image = images[1]
-    elif(img_label[i].image == images[1]):
-        img_label[i].configure(image=images[2])
-        img_label[i].image = images[2]
-    elif(img_label[i].image == images[2]):
-        img_label[i].configure(image=images[3])
-        img_label[i].image = images[3]
-    elif(img_label[i].image == images[3]):
-        img_label[i].configure(image=images[4])
-        img_label[i].image = images[4]
-    elif(img_label[i].image == images[4]):
-        img_label[i].configure(image=images[0])
-        img_label[i].image = images[0]
+# Render imports
+from PIL import ImageGrab
+import numpy as np
+import cv2
+import ctypes
+from ctypes.wintypes import HWND, DWORD, RECT
+import pywintypes
+from win32 import win32gui
+import datetime
 
 
-alpha = 0.00
+ATTACK = 200
+HOLD = ATTACK + 0 # delays release from the beggining of attack, hence attack + additional time 
+RELEASE = 1700
+FADE_RANGE = 1
 
-def crossfade(img_position): 
-    #if(img_label[img_position].image == images[img_type]):
-    global alpha
-    for alpha in range(10):
-        alpha_div = alpha/10
-        new_img = Image.blend(img0, img0_glow, alpha_div)
-        new_img_ph = ImageTk.PhotoImage(new_img)
-        img_label[img_position].configure(image=new_img_ph)
-        img_label[img_position].image = new_img_ph
-        #time.sleep(1)
-        root.after(1000, crossfade(img_position))
 
-img_position = 0
+# fix menu path when compiling to one file
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
 
-def trigger_glow():
-    #print(tempo)
-    global img_position
-    if (img_position < 8):
-        print(img_position)
-        if(img_label[img_position].image == images[0]):
-            crossfade(img_position)
-        elif(img_label[img_position].image == images[1]):
-            crossfade(img_position)
-        elif(img_label[img_position].image == images[2]):
-            crossfade(img_position)
-        elif(img_label[img_position].image == images[3]):
-            crossfade(img_position)
-        elif(img_label[img_position].image == images[4]):
-            crossfade(img_position)
-        img_position+=1
-        #root.after(900, trigger_glow)
-    
+    return os.path.join(base_path, relative_path)
+
+
+app = QApplication(sys.argv)
+grid = QGridLayout()
+
+
+image0 = QPixmap(resource_path('images/dot.png'))
+image0 = image0.scaledToWidth(220, Qt.SmoothTransformation)
+image0 = image0.scaledToHeight(220, Qt.SmoothTransformation)
+image1 = QPixmap(resource_path('images/down_full.png'))
+image1 = image1.scaledToWidth(220, Qt.SmoothTransformation)
+image1 = image1.scaledToHeight(220, Qt.SmoothTransformation)
+image2 = QPixmap(resource_path('images/down_open.png'))
+image2 = image2.scaledToWidth(220, Qt.SmoothTransformation)
+image2 = image2.scaledToHeight(220, Qt.SmoothTransformation)
+image3 = QPixmap(resource_path('images/up_full.png'))
+image3 = image3.scaledToWidth(220, Qt.SmoothTransformation)
+image3 = image3.scaledToHeight(220, Qt.SmoothTransformation)
+image4 = QPixmap(resource_path('images/up_open.png'))
+image4 = image4.scaledToWidth(220, Qt.SmoothTransformation)
+image4 = image4.scaledToHeight(220, Qt.SmoothTransformation)
+
+image0_glow = QPixmap(resource_path('images/dot_glow.png'))
+image0_glow = image0_glow.scaledToWidth(220, Qt.SmoothTransformation)
+image0_glow = image0_glow.scaledToHeight(220, Qt.SmoothTransformation)
+image1_glow = QPixmap(resource_path('images/down_full_glow.png'))
+image1_glow = image1_glow .scaledToWidth(220, Qt.SmoothTransformation)
+image1_glow = image1_glow .scaledToHeight(220, Qt.SmoothTransformation)
+image2_glow = QPixmap(resource_path('images/down_open_glow.png'))
+image2_glow = image2_glow .scaledToWidth(220, Qt.SmoothTransformation)
+image2_glow = image2_glow .scaledToHeight(220, Qt.SmoothTransformation)
+image3_glow = QPixmap(resource_path('images/up_full_glow.png'))
+image3_glow = image3_glow .scaledToWidth(220, Qt.SmoothTransformation)
+image3_glow = image3_glow .scaledToHeight(220, Qt.SmoothTransformation)
+image4_glow = QPixmap(resource_path('images/up_open_glow.png'))
+image4_glow = image4_glow .scaledToWidth(220, Qt.SmoothTransformation)
+image4_glow = image4_glow .scaledToHeight(220, Qt.SmoothTransformation)
+
+images_glow = [image0_glow, image1_glow, image2_glow, image3_glow, image4_glow]
+
+
+class Element(QLabel):
+    imgIndex = 0
+    elementIndex = 0
+
+    def __init__(self):
+        super(Element, self).__init__()
+        self.setPixmap(image0)
+    def mousePressEvent(self, event):
+        if self.imgIndex == 0:
+            self.setPixmap(image1)
+            self.imgIndex = 1
+        elif self.imgIndex == 1:
+            self.setPixmap(image2)
+            self.imgIndex = 2
+        elif self.imgIndex == 2:
+            self.setPixmap(image3)
+            self.imgIndex = 3
+        elif self.imgIndex == 3:
+            self.setPixmap(image4)
+            self.imgIndex = 4
+        elif self.imgIndex == 4:
+            self.setPixmap(image0)
+            self.imgIndex = 0
+    def glow(self):
+        glow = Fade()
+        glow.setPixmap(images_glow[Element.imgIndex])
+        grid.addWidget(glow, 0, Element.elementIndex)
+
+
+class Fade(QLabel):
+    def __init__(self):
+        super().__init__()
+        self.fadeIn()
+        QtCore.QTimer.singleShot(HOLD, lambda:self.fadeOut())
+    def fadeIn(self):   
+        self.effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.effect)
+        self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
+        self.animation.setDuration(ATTACK)
+        self.animation.setStartValue(0)
+        self.animation.setEndValue(FADE_RANGE)
+        self.animation.start()
+    def fadeOut(self):
+        self.effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.effect)
+        self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
+        self.animation.setDuration(RELEASE)
+        self.animation.setStartValue(FADE_RANGE)
+        self.animation.setEndValue(0)
+        self.animation.start()
+
+
+class MyWindow(QWidget):
+    def __init__(self):
+        super(MyWindow, self).__init__()
+        self.setWindowTitle('Anitrone')
+        self.setGeometry(0, 200, 1920, 220)
+        self.setStyleSheet("background: black;")
+        self.setLayout(grid)
+        self.keyStroke()
+    def keyStroke(self):
+        self.tempo120 = QShortcut(QKeySequence('Ctrl+1'), self)
+        self.tempo120.activated.connect(lambda *_: self.start(120))
+        self.tempo150 = QShortcut(QKeySequence('Ctrl+2'), self)
+        self.tempo150.activated.connect(lambda *_: self.start(150))
+        self.tempo180 = QShortcut(QKeySequence('Ctrl+3'), self)
+        self.tempo180.activated.connect(lambda *_: self.start(180))
+
+    tempo = 0
+    def start(self, tempo):
+        MyWindow.tempo = tempo
+
+        # Create a QThread object
+        self.thread = QThread()
+        # Create a worker object
+        self.worker = Render()
+        # Move worker to the thread
+        self.worker.moveToThread(self.thread)
+        # Connect signals and slots
+        self.thread.started.connect(self.worker.render)
         
-       
+        self.worker.glow0.connect(button0.glow)
+        self.worker.glow1.connect(button0.glow)
+        self.worker.glow2.connect(button0.glow)
+        self.worker.glow3.connect(button0.glow)
+        self.worker.glow4.connect(button0.glow)
+        self.worker.glow5.connect(button0.glow)
+        self.worker.glow6.connect(button0.glow)
+        self.worker.glow7.connect(button0.glow)
 
-# --- main ---
-
-root = tk.Tk()
-
-canvas = tk.Canvas(root, width=1080, height=200)
-canvas.grid(columnspan=8)
-
-img0 = Image.open('./images/dot.png')
-img0 = img0.resize((120, 120))
-img1 = Image.open('./images/down_full.png')
-img1 = img1.resize((120, 120), Image.ANTIALIAS)
-img2 = Image.open('./images/down_open.png')
-img2 = img2.resize((120, 120), Image.ANTIALIAS)
-img3 = Image.open('./images/up_full.png')
-img3 = img3.resize((120, 120), Image.ANTIALIAS)
-img4 = Image.open('./images/up_open.png')
-img4 = img4.resize((120, 120), Image.ANTIALIAS)
-
-images = [
-    ImageTk.PhotoImage(img0),
-    ImageTk.PhotoImage(img1),
-    ImageTk.PhotoImage(img2),
-    ImageTk.PhotoImage(img3),
-    ImageTk.PhotoImage(img4)
-]
-
-img0_glow = Image.open('./images/dot_glow.png')
-img0_glow = img0_glow.resize((120, 120))
-img1_glow = Image.open('./images/down_full_glow.png')
-img1_glow = img1_glow.resize((120, 120), Image.ANTIALIAS)
-img2_glow = Image.open('./images/down_open_glow.png')
-img2_glow = img2_glow.resize((120, 120), Image.ANTIALIAS)
-img3_glow = Image.open('./images/up_full_glow.png')
-img3_glow = img3_glow.resize((120, 120), Image.ANTIALIAS)
-img4_glow = Image.open('./images/up_open_glow.png')
-img4_glow = img4_glow.resize((120, 120), Image.ANTIALIAS)
-
-images_glow = [
-    ImageTk.PhotoImage(img0_glow),
-    ImageTk.PhotoImage(img1_glow),
-    ImageTk.PhotoImage(img2_glow),
-    ImageTk.PhotoImage(img3_glow),
-    ImageTk.PhotoImage(img4_glow)
-]
-
-img_label_glow0 = tk.Label(image=images_glow[0])
-img_label_glow0.image = images_glow[0]
-
-img_label = {}
-
-img_label[0] = tk.Label(image=images[0])
-img_label[0].image = images[0]
-img_label[0].grid(column=0, row=0)
-img_label[0].bind('<Button-1>', lambda *_: switch_img(0))
-
-img_label[1] = tk.Label(image=images[0])
-img_label[1].image = images[0]
-img_label[1].grid(column=1, row=0)
-img_label[1].bind('<Button-1>', lambda *_: switch_img(1))
-    
-img_label[2] = tk.Label(image=images[0])
-img_label[2].image = images[0]
-img_label[2].grid(column=2, row=0)
-img_label[2].bind('<Button-1>', lambda *_: switch_img(2))
-
-img_label[3] = tk.Label(image=images[0])
-img_label[3].image = images[0]
-img_label[3].grid(column=3, row=0)
-img_label[3].bind('<Button-1>', lambda *_: switch_img(3))
-
-img_label[4] = tk.Label(image=images[0])
-img_label[4].image = images[0]
-img_label[4].grid(column=4, row=0)
-img_label[4].bind('<Button-1>', lambda *_: switch_img(4))
-
-img_label[5] = tk.Label(image=images[0])
-img_label[5].image = images[0]
-img_label[5].grid(column=5, row=0)
-img_label[5].bind('<Button-1>', lambda *_: switch_img(5))
-
-img_label[6] = tk.Label(image=images[0])
-img_label[6].image = images[0]
-img_label[6].grid(column=6, row=0)
-img_label[6].bind('<Button-1>', lambda *_: switch_img(6))
-
-img_label[7] = tk.Label(image=images[0])
-img_label[7].image = images[0]
-img_label[7].grid(column=7, row=0)
-img_label[7].bind('<Button-1>', lambda *_: switch_img(7))
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.thread.deleteLater)
+        # Start the thread
+        self.thread.start()
 
 
-root.bind('<Control-q>', lambda *_: trigger_glow())
-root.bind('<Control-w>', lambda *_: trigger_glow(150))
-root.bind('<Control-e>', lambda *_: trigger_glow(180))
+class Render(QObject):
+    finished = pyqtSignal()
+    glow0 = pyqtSignal()
+    glow1 = pyqtSignal()
+    glow2 = pyqtSignal()
+    glow3 = pyqtSignal()
+    glow4 = pyqtSignal()
+    glow5 = pyqtSignal()
+    glow6 = pyqtSignal()
+    glow7 = pyqtSignal()
 
-root.mainloop()
+    def render(self):
+        # Getting app window position
+        dwmapi = ctypes.WinDLL("dwmapi")
+        hwnd = win32gui.FindWindow(None, 'Anitrone')
+        rect = RECT()
+        DMWA_EXTENDED_FRAME_BOUNDS = 9
+        dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
+
+        FPS = 30
+        time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        file_name = f'{time_stamp}.avi'
+        fourcc = cv2.VideoWriter_fourcc(*'FFV1')
+        captured_video = cv2.VideoWriter(file_name, fourcc, FPS, (rect.right-rect.left, rect.bottom-rect.top-34))
+        
+        if MyWindow.tempo == 120:
+            duration = 8
+        elif MyWindow.tempo == 150:
+            duration = 6.4
+        elif MyWindow.tempo == 180:
+            duration = 5.35
+
+        for i in range(int(duration * FPS)):
+            img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
+            img_np = np.array(img)
+            img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+
+            if duration == 8:
+                if i == 0:
+                    Element.elementIndex = 0
+                    self.glow0.emit()
+                elif i == 30:
+                    Element.elementIndex = 1
+                    self.glow1.emit()
+                elif i == 60:
+                    Element.elementIndex = 2
+                    self.glow2.emit()
+                elif i == 90:
+                    Element.elementIndex = 3
+                    self.glow3.emit()
+                elif i == 120:
+                    Element.elementIndex = 4
+                    self.glow4.emit()
+                elif i == 150:
+                    Element.elementIndex = 5
+                    self.glow5.emit()
+                elif i == 180:
+                    Element.elementIndex = 6
+                    self.glow6.emit()
+                elif i == 210:
+                    Element.elementIndex = 7
+                    self.glow7.emit()
+            elif duration == 6.4:
+                if i == 0:
+                    Element.elementIndex = 0
+                    self.glow0.emit()
+                elif i == 24:
+                    Element.elementIndex = 1
+                    self.glow1.emit()
+                elif i == 48:
+                    Element.elementIndex = 2
+                    self.glow2.emit()
+                elif i == 72:
+                    Element.elementIndex = 3
+                    self.glow3.emit()
+                elif i == 96:
+                    Element.elementIndex = 4
+                    self.glow4.emit()
+                elif i == 120:
+                    Element.elementIndex = 5
+                    self.glow5.emit()
+                elif i == 144:
+                    Element.elementIndex = 6
+                    self.glow6.emit()
+                elif i == 168:
+                    Element.elementIndex = 7
+                    self.glow7.emit()
+            elif duration == 5.35:
+                if i == 0:
+                    Element.elementIndex = 0
+                    self.glow0.emit()
+                elif i == 20:
+                    Element.elementIndex = 1
+                    self.glow1.emit()
+                elif i == 40:
+                    Element.elementIndex = 2
+                    self.glow2.emit()
+                elif i == 60:
+                    Element.elementIndex = 3
+                    self.glow3.emit()
+                elif i == 80:
+                    Element.elementIndex = 4
+                    self.glow4.emit()
+                elif i == 100:
+                    Element.elementIndex = 5
+                    self.glow5.emit()
+                elif i == 120:
+                    Element.elementIndex = 6
+                    self.glow6.emit()
+                elif i == 140:
+                    Element.elementIndex = 7
+                    self.glow7.emit()
+
+            captured_video.write(img_final)
+
+        cv2.destroyAllWindows()
+        captured_video.release()
+        self.finished.emit()
+
+
+# main
+win = MyWindow()
+
+button0 = Element()
+button1 = Element()
+button2 = Element()
+button3 = Element()
+button4 = Element()
+button5 = Element()
+button6 = Element()
+button7 = Element()
+
+grid.addWidget(button0, 0, 0)
+grid.addWidget(button1, 0, 1)
+grid.addWidget(button2, 0, 2)
+grid.addWidget(button3, 0, 3)
+grid.addWidget(button4, 0, 4)
+grid.addWidget(button5, 0, 5)
+grid.addWidget(button6, 0, 6)
+grid.addWidget(button7, 0, 7)
+
+win.show()
+sys.exit(app.exec_())
