@@ -5,6 +5,7 @@ from PyQt5 import QtCore
 import sys
 import os
 
+
 ATTACK = 200
 HOLD = ATTACK + 0 # delays release from the beggining of attack, hence attack + additional time 
 RELEASE = 1700
@@ -84,7 +85,7 @@ class Element(QLabel):
         elif self.index == 4:
             self.setPixmap(image0)
             self.index = 0
-    def glow(element_index):
+    def glow(self, element_index):
         glow = Fade()
         glow.setPixmap(images_glow[Element.index])
         grid.addWidget(glow, 0, element_index)
@@ -137,21 +138,21 @@ def render():
     for i in range(int(duration * FPS)):       
         if duration == 8:
             if i == 0:
-                button0.glow()
+                button0.glow(0)
             elif i == 30:
-                button1.glow()
+                button1.glow(1)
             elif i == 60:
-                button2.glow()
+                button2.glow(2)
             elif i == 90:
-                button3.glow()
+                button3.glow(3)
             elif i == 120:
-                button4.glow()
+                button4.glow(4)
             elif i == 150:
-                button5.glow()
+                button5.glow(5)
             elif i == 180:
-                button6.glow()
+                button6.glow(6)
             elif i == 210:
-                button7.glow()
+                button7.glow(7)
 
 # main
 
@@ -179,4 +180,3 @@ grid.addWidget(button7, 0, 7)
 
 win.show()
 sys.exit(app.exec_())
-
