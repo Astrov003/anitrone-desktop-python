@@ -266,7 +266,7 @@ class Render(QObject):
                     self.glow14.emit()
                 elif i == 450:
                     self.glow15.emit()
-            elif duration == 6.4:
+            elif duration == 12.8:
                 if i == 0:
                     self.glow0.emit()
                 elif i == 24:
@@ -284,22 +284,22 @@ class Render(QObject):
                 elif i == 168:
                     self.glow7.emit()
                 elif i == 192:
-                    self.glow0.emit()
+                    self.glow8.emit()
                 elif i == 216:
-                    self.glow1.emit()
+                    self.glow9.emit()
                 elif i == 240:
-                    self.glow2.emit()
+                    self.glow10.emit()
                 elif i == 264:
-                    self.glow3.emit()
+                    self.glow11.emit()
                 elif i == 288:
-                    self.glow4.emit()
+                    self.glow12.emit()
                 elif i == 312:
-                    self.glow5.emit()
+                    self.glow13.emit()
                 elif i == 336:
-                    self.glow6.emit()
+                    self.glow14.emit()
                 elif i == 360:
-                    self.glow7.emit()
-            elif duration == 5.35:
+                    self.glow15.emit()
+            elif duration == 10.7:
                 if i == 0:
                     self.glow0.emit()
                 elif i == 20:
@@ -317,21 +317,21 @@ class Render(QObject):
                 elif i == 140:
                     self.glow7.emit()
                 elif i == 160:
-                    self.glow0.emit()
+                    self.glow8.emit()
                 elif i == 180:
-                    self.glow1.emit()
+                    self.glow9.emit()
                 elif i == 200:
-                    self.glow2.emit()
+                    self.glow10.emit()
                 elif i == 220:
-                    self.glow3.emit()
+                    self.glow11.emit()
                 elif i == 240:
-                    self.glow4.emit()
+                    self.glow12.emit()
                 elif i == 260:
-                    self.glow5.emit()
+                    self.glow13.emit()
                 elif i == 280:
-                    self.glow6.emit()
+                    self.glow14.emit()
                 elif i == 300:
-                    self.glow7.emit()
+                    self.glow15.emit()
 
             captured_video.write(img_final)
 
