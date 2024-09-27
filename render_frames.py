@@ -13,7 +13,7 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-def render_frames(sprite_index, frame_index):
+def render_image_frames(sprite_index, frame_index, total_frames):
     # Load sprite images
     images = [
         (resource_path(f'images/sprite_{i}.png'))
@@ -38,7 +38,6 @@ def render_frames(sprite_index, frame_index):
         raise ValueError("Both images must be PNG files with an alpha channel.")
 
     # Initialize parameters
-    total_frames = 30
     blend_duration = 200  # in ms for blending
     hold_duration = 200    # in ms for holding the blended image
 
