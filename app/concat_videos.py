@@ -2,7 +2,7 @@ from moviepy.editor import VideoFileClip, clips_array
 
 # Define the number of videos and their paths
 num_videos = 8
-video_paths = [f"video_{i}.avi" for i in range(num_videos)]
+video_paths = [f"videos/video_{i}.avi" for i in range(num_videos)]
 
 # Load video clips
 clips = [VideoFileClip(path) for path in video_paths]
