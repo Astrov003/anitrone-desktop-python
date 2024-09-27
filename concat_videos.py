@@ -1,4 +1,4 @@
-from moviepy.editor import VideoFileClip, CompositeVideoClip, clips_array
+from moviepy.editor import ImageClip, VideoFileClip, CompositeVideoClip, clips_array
 import os
 
 def concat_final_videos(tempo):
@@ -12,12 +12,12 @@ def concat_final_videos(tempo):
         duration = 5.35
         frames = 20
         
-    # Define the number of videos and their paths
-    num_videos = 8
-    video_paths = [f"video_{i}.avi" for i in range(num_videos)]
+    # Define the number of images and their paths
+    num_images = 8
+    image_paths = [f"image_{i}.png" for i in range(num_images)]  # Change to PNG files
 
-    # Load video clips
-    clips = [VideoFileClip(path) for path in video_paths]
+    # Load image clips
+    clips = [ImageClip(path).set_duration(duration) for path in image_paths]
 
     # Set the canvas width and offset
     canvas_width = 1760
@@ -30,7 +30,7 @@ def concat_final_videos(tempo):
     final_clips = []
 
     # Calculate the total width of the final layout
-    total_width = sum(clip.w for clip in clips) + (len(clips) - 1) * offset
+    total_width = sum(clip.size[0] for clip in clips) + (len(clips) - 1) * offset
 
     # Resize clips to fit within the canvas width
     resize_factor = canvas_width / total_width
@@ -45,12 +45,21 @@ def concat_final_videos(tempo):
     # Create a final video by combining the clips
     final_video = clips_array([final_clips])
 
-    # Load the existing video
+    # Load the existing video if needed
     existing_video_path = "output_video.mp4"  # Update with your existing video path
-    existing_video = VideoFileClip(existing_video_path)
-
-    # Create a composite video with the final video on top of the existing video
-    output_video = CompositeVideoClip([existing_video, final_video.set_position((0, 0))])
+    
+    # Check if the existing video is a valid video file
+    existing_video = None
+    if os.path.exists(existing_video_path):
+        if existing_video_path.endswith(('.mp4', '.avi', '.mov', '.mkv')):  # Check for common video formats
+            existing_video = VideoFileClip(existing_video_path).set_duration(duration)
+    
+    # Create a composite video with the final video on top of the existing video, if it exists
+    if existing_video:
+        output_video = CompositeVideoClip([existing_video, final_video.set_position((0, 0))])
+    else:
+        output_video = final_video
 
     # Write the final video to a file
     output_video.write_videofile("combined_final_video.mp4", codec='libx264', fps=30, audio=False)
+

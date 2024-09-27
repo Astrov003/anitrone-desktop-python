@@ -1,58 +1,39 @@
+from PIL import Image
 import os
-import subprocess
 
 def create_group_videos(tempo):
+    # Set the number of frames per group based on the tempo
     if tempo == 120:
         frames = 30
     elif tempo == 150:
         frames = 24
     elif tempo == 180:
         frames = 20
+    else:
+        raise ValueError("Tempo must be 120, 150, or 180.")
 
     # Constants
-    frame_width = 220
-    frame_height = 220
+    frame_folder = "output"
     num_frames_per_group = frames
     num_groups = 8
-    total_width = frame_width * num_groups  # 1760px
-    output_video_path = 'output_video.mov'  # Change the output video format to .mov
-    frame_folder = 'output'  # Change this to your folder path
-
-    # Create a temporary file to hold the frame information for each group
-    temp_video_paths = []
+    duration_per_frame = 1000 // 30  # In milliseconds (for 30 fps)
 
     for group in range(num_groups):
-        temp_video_path = f'video_{group}.avi'
-        temp_video_paths.append(temp_video_path)
+        frames_for_group = []
+        for frame_index in range(num_frames_per_group):
+            global_index = group * num_frames_per_group + frame_index
+            frame_path = os.path.join(frame_folder, f'frame_{global_index}.png')
 
-        # Create a temporary file to hold the frame information for the current group
-        frame_list_path = f'frames_group_{group}.txt'
+            if os.path.exists(frame_path):
+                image = Image.open(frame_path)
+                frames_for_group.append(image)
+            else:
+                print(f"Warning: Frame {frame_path} not found.")
 
-        # Prepare the list of frames for the current group
-        with open(frame_list_path, 'w') as f:
-            for frame_index in range(num_frames_per_group):
-                global_index = group * num_frames_per_group + frame_index
-                frame_path = os.path.join(frame_folder, f'frame_{global_index}.png')  # Ensure your frames have an alpha channel
-                
-                if os.path.exists(frame_path):
-                    f.write(f"file '{frame_path}'\n")
-                    f.write(f"duration 0.03333\n")  # Duration for each frame (30 FPS)
-                else:
-                    print(f"Warning: Frame {frame_path} not found.")
+        if frames_for_group:
+            output_apng_path = f'image_{group}.png'
+            frames_for_group[0].save(output_apng_path, save_all=True, append_images=frames_for_group[1:], duration=duration_per_frame, loop=0, format='PNG')
+            print(f"APNG for group {group} saved as {output_apng_path}")
 
-        # Run ffmpeg to create a video for the current group
-        subprocess.run([
-            'ffmpeg',
-            '-y',  # Overwrite output files
-            '-f', 'concat',  # Use concat demuxer
-            '-safe', '0',  # Allow unsafe file paths
-            '-i', frame_list_path,  # Input the list of frames
-            '-c:v', 'png',  # Use PNG codec for lossless video
-            '-pix_fmt', 'yuva420p',  # Set pixel format to include alpha channel
-            temp_video_path
-        ])
+    print("APNG creation completed successfully.")
 
-        # Clean up the temporary frame list file
-        os.remove(frame_list_path)
-
-    print("Video rendering completed successfully.")
