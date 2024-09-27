@@ -161,6 +161,7 @@ class MyWindow(QWidget):
 
 class Render(QObject):
     finished = pyqtSignal()
+    
     glow0 = pyqtSignal()
     glow1 = pyqtSignal()
     glow2 = pyqtSignal()
@@ -169,6 +170,9 @@ class Render(QObject):
     glow5 = pyqtSignal()
     glow6 = pyqtSignal()
     glow7 = pyqtSignal()
+
+    def __init__(self):
+        super().__init__()
 
     def render(self):
         FPS = 30
@@ -186,85 +190,52 @@ class Render(QObject):
         elif MyWindow.tempo == 180:
             duration = 5.35
 
+        # Update composite image size to accommodate 8 sprites
+        composite_img = np.zeros((220, 8 * 220, 4), dtype=np.uint8)  # Create a transparent image for the composite
+
         # Render the sprite animation frames
         for i in range(int(duration * FPS)):
-            frame_img = np.zeros((220, 220, 4), dtype=np.uint8)  # Create a transparent image
+            # Clear the composite image for each frame
+            composite_img.fill(0)
 
             # Calculate current sprite index based on frame
-            sprite_index = (i // (FPS // len(images))) % len(images)
+            for j in range(8):  # Iterate through all sprites
+                sprite_index = (i // (FPS // len(images))) % len(images)
+                sprite_img = images[sprite_index]
 
-            # Convert QPixmap to NumPy array
-            qimage = images[sprite_index].toImage()
-            width, height = qimage.width(), qimage.height()
-            ptr = qimage.bits()
-            ptr.setsize(qimage.byteCount())
-            img_data = np.array(ptr).reshape(height, width, 4)  # Convert to RGBA
+                # Convert QPixmap to NumPy array
+                qimage = sprite_img.toImage()
+                width, height = qimage.width(), qimage.height()
+                ptr = qimage.bits()
+                ptr.setsize(qimage.byteCount())
+                img_data = np.array(ptr).reshape(height, width, 4)  # Convert to RGBA
 
-            # Overlay the sprite onto the transparent frame
-            frame_img[:, :, :] = img_data
+                # Overlay the sprite onto the composite image at the correct position
+                x_offset = j * 220  # Calculate the horizontal position for the sprite
+                composite_img[:, x_offset:x_offset + 220, :] = img_data  # Place the sprite in the composite
 
-            # Save the frame
+                # Emit glow signals based on frame number
+                if self.should_glow(i, duration, j):
+                    getattr(self, f'glow{j}').emit()  # Emit the corresponding glow signal
+
+            # Save the composite frame
             file_name = os.path.join(output_dir, f'frame_{i:04d}.png')
-            cv2.imwrite(file_name, frame_img)
-
-            # Emit glow signals based on frame number (optional)
-            # Emit glow signals based on frame number
-            if duration == 8:
-                if i == 0:
-                    self.glow0.emit()
-                elif i == 30:
-                    self.glow1.emit()
-                elif i == 60:
-                    self.glow2.emit()
-                elif i == 90:
-                    self.glow3.emit()
-                elif i == 120:
-                    self.glow4.emit()
-                elif i == 150:
-                    self.glow5.emit()
-                elif i == 180:
-                    self.glow6.emit()
-                elif i == 210:
-                    self.glow7.emit()
-            elif duration == 6.4:
-                if i == 0:
-                    self.glow0.emit()
-                elif i == 24:
-                    self.glow1.emit()
-                elif i == 48:
-                    self.glow2.emit()
-                elif i == 72:
-                    self.glow3.emit()
-                elif i == 96:
-                    self.glow4.emit()
-                elif i == 120:
-                    self.glow5.emit()
-                elif i == 144:
-                    self.glow6.emit()
-                elif i == 168:
-                    self.glow7.emit()
-            elif duration == 5.35:
-                if i == 0:
-                    self.glow0.emit()
-                elif i == 20:
-                    self.glow1.emit()
-                elif i == 40:
-                    self.glow2.emit()
-                elif i == 60:
-                    self.glow3.emit()
-                elif i == 80:
-                    self.glow4.emit()
-                elif i == 100:
-                    self.glow5.emit()
-                elif i == 120:
-                    self.glow6.emit()
-                elif i == 140:
-                    self.glow7.emit()
+            cv2.imwrite(file_name, composite_img)
 
         # Once all frames are saved, call FFmpeg to convert to transparent video
         self.convert_to_video(output_dir, FPS)
 
         self.finished.emit()
+
+    def should_glow(self, frame_index, duration, sprite_index):
+        # Logic to determine if the sprite should glow in this frame based on the duration
+        if duration == 8:
+            return frame_index in [0, 30, 60, 90, 120, 150, 180, 210] and sprite_index == frame_index // 30
+        elif duration == 6.4:
+            return frame_index in [0, 24, 48, 72, 96, 120, 144, 168] and sprite_index == frame_index // 24
+        elif duration == 5.35:
+            return frame_index in [0, 20, 40, 60, 80, 100, 120, 140] and sprite_index == frame_index // 20
+        return False
 
     def convert_to_video(self, output_dir, fps):
         # Path to the final video file saved in the script directory
@@ -289,6 +260,7 @@ class Render(QObject):
         # Optionally: clean up PNG frames after video creation
         shutil.rmtree(output_dir)
         print("PNG frames cleaned up.")
+
 
 
 # Main execution
