@@ -46,6 +46,7 @@ images_glow = [
 class Element(QLabel):
     imgIndex = 0
     elementIndex = 0
+    isGlowing = False  # Track if the element is glowing
 
     def __init__(self, elementIndex):
         super(Element, self).__init__()
@@ -53,13 +54,28 @@ class Element(QLabel):
         self.setPixmap(images[0])
 
     def mousePressEvent(self, event):
+        # If this element is already glowing, do nothing
+        if self.isGlowing:
+            return
+        
         self.imgIndex = (self.imgIndex + 1) % len(images)
         self.setPixmap(images[self.imgIndex])
+
+        # Trigger glow for the first sprite only
+        if self.elementIndex == 0:
+            self.isGlowing = True
+            self.glow()
 
     def glow(self):
         glow = Fade()
         glow.setPixmap(images_glow[self.imgIndex])
         grid.addWidget(glow, 0, self.elementIndex)
+
+        # Remove glow effect after fading out
+        QtCore.QTimer.singleShot(RELEASE, self.removeGlow)
+
+    def removeGlow(self):
+        self.isGlowing = False  # Reset glow state
 
 
 class Fade(QLabel):
@@ -143,14 +159,8 @@ class MyWindow(QWidget):
         # Connect signals and slots
         self.thread.started.connect(self.worker.render)
         
+        # Only connect glow for the first sprite (index 0)
         self.worker.glow0.connect(button0.glow)
-        self.worker.glow1.connect(button1.glow)
-        self.worker.glow2.connect(button2.glow)
-        self.worker.glow3.connect(button3.glow)
-        self.worker.glow4.connect(button4.glow)
-        self.worker.glow5.connect(button5.glow)
-        self.worker.glow6.connect(button6.glow)
-        self.worker.glow7.connect(button7.glow)
 
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
@@ -163,13 +173,6 @@ class Render(QObject):
     finished = pyqtSignal()
     
     glow0 = pyqtSignal()
-    glow1 = pyqtSignal()
-    glow2 = pyqtSignal()
-    glow3 = pyqtSignal()
-    glow4 = pyqtSignal()
-    glow5 = pyqtSignal()
-    glow6 = pyqtSignal()
-    glow7 = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -190,8 +193,8 @@ class Render(QObject):
         elif MyWindow.tempo == 180:
             duration = 5.35
 
-        # Update composite image size to accommodate 8 sprites
-        composite_img = np.zeros((220, 8 * 220, 4), dtype=np.uint8)  # Create a transparent image for the composite
+        # Update composite image size to accommodate only the first sprite
+        composite_img = np.zeros((220, 220, 4), dtype=np.uint8)  # Create a transparent image for the single sprite
 
         # Render the sprite animation frames
         for i in range(int(duration * FPS)):
@@ -205,31 +208,31 @@ class Render(QObject):
             elif i >= int(duration * FPS) - FPS:  # Last second for glowing
                 glow_factor = (int(duration * FPS) - i) / FPS  # Fade out
 
-            # Iterate through all sprites
-            for j in range(6):
-                # Get the current sprite and its glow image
-                sprite_img = images[j]
-                glow_img = images_glow[j]
+            # Only render the first sprite
+            j = 0  # Only the first sprite (index 0)
 
-                # Convert QPixmap to NumPy array
-                qimage_sprite = sprite_img.toImage()
-                qimage_glow = glow_img.toImage()
+            # Get the current sprite and its glow image
+            sprite_img = images[j]
+            glow_img = images_glow[j]
 
-                width, height = qimage_sprite.width(), qimage_sprite.height()
-                ptr_sprite = qimage_sprite.bits()
-                ptr_sprite.setsize(qimage_sprite.byteCount())
-                img_data_sprite = np.array(ptr_sprite).reshape(height, width, 4)  # Convert to RGBA
+            # Convert QPixmap to NumPy array
+            qimage_sprite = sprite_img.toImage()
+            qimage_glow = glow_img.toImage()
 
-                ptr_glow = qimage_glow.bits()
-                ptr_glow.setsize(qimage_glow.byteCount())
-                img_data_glow = np.array(ptr_glow).reshape(height, width, 4)  # Convert to RGBA
+            width, height = qimage_sprite.width(), qimage_sprite.height()
+            ptr_sprite = qimage_sprite.bits()
+            ptr_sprite.setsize(qimage_sprite.byteCount())
+            img_data_sprite = np.array(ptr_sprite).reshape(height, width, 4)  # Convert to RGBA
 
-                # Blend the current sprite and glow image based on the glow factor
-                blended_image = cv2.addWeighted(img_data_sprite, 1 - glow_factor, img_data_glow, glow_factor, 0)
+            ptr_glow = qimage_glow.bits()
+            ptr_glow.setsize(qimage_glow.byteCount())
+            img_data_glow = np.array(ptr_glow).reshape(height, width, 4)  # Convert to RGBA
 
-                # Overlay the blended image onto the composite image at the correct position
-                x_offset = j * 220  # Calculate the horizontal position for the sprite
-                composite_img[:, x_offset:x_offset + 220, :] = blended_image  # Place the blended sprite in the composite
+            # Blend the current sprite and glow image based on the glow factor
+            blended_image = cv2.addWeighted(img_data_sprite, 1 - glow_factor, img_data_glow, glow_factor, 0)
+
+            # Overlay the blended image onto the composite image
+            composite_img[:, :] = blended_image  # Place the blended sprite in the composite
 
             # Save the composite frame
             file_name = os.path.join(output_dir, f'frame_{i:04d}.png')
@@ -240,16 +243,6 @@ class Render(QObject):
 
         self.finished.emit()
 
-
-    def should_glow(self, frame_index, duration, sprite_index):
-        # Logic to determine if the sprite should glow in this frame based on the duration
-        if duration == 8:
-            return frame_index in [0, 30, 60, 90, 120, 150, 180, 210] and sprite_index == frame_index // 30
-        elif duration == 6.4:
-            return frame_index in [0, 24, 48, 72, 96, 120, 144, 168] and sprite_index == frame_index // 24
-        elif duration == 5.35:
-            return frame_index in [0, 20, 40, 60, 80, 100, 120, 140] and sprite_index == frame_index // 20
-        return False
 
     def convert_to_video(self, output_dir, fps):
         # Path to the final video file saved in the script directory
@@ -274,7 +267,6 @@ class Render(QObject):
         # Optionally: clean up PNG frames after video creation
         shutil.rmtree(output_dir)
         print("PNG frames cleaned up.")
-
 
 
 # Main execution

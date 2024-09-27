@@ -82,10 +82,9 @@ class Element(QLabel):
     imgIndex = 0
     elementIndex = 0
 
-    def __init__(self, elementRow, elementIndex):
+    def __init__(self, elementIndex):
         super(Element, self).__init__()
         self.elementIndex = elementIndex
-        self.elementRow = elementRow
         self.setPixmap(image0)
     def mousePressEvent(self, event):
         if self.imgIndex == 0:
@@ -109,7 +108,7 @@ class Element(QLabel):
     def glow(self):
         glow = Fade()
         glow.setPixmap(images_glow[self.imgIndex])
-        grid.addWidget(glow, self.elementRow, self.elementIndex)
+        grid.addWidget(glow, 0, self.elementIndex)
 
 
 class Fade(QLabel):
@@ -139,7 +138,7 @@ class MyWindow(QWidget):
     def __init__(self):
         super(MyWindow, self).__init__()
         self.setWindowTitle('Anitrone')
-        self.setGeometry(0, 200, 1920, 440)
+        self.setGeometry(0, 200, 1920, 220)
         self.setStyleSheet("background: black;")
         self.setLayout(grid)
         self.keyStroke()
@@ -172,14 +171,6 @@ class MyWindow(QWidget):
         self.worker.glow5.connect(button5.glow)
         self.worker.glow6.connect(button6.glow)
         self.worker.glow7.connect(button7.glow)
-        self.worker.glow8.connect(button8.glow)
-        self.worker.glow9.connect(button9.glow)
-        self.worker.glow10.connect(button10.glow)
-        self.worker.glow11.connect(button11.glow)
-        self.worker.glow12.connect(button12.glow)
-        self.worker.glow13.connect(button13.glow)
-        self.worker.glow14.connect(button14.glow)
-        self.worker.glow15.connect(button15.glow)
 
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
@@ -198,14 +189,6 @@ class Render(QObject):
     glow5 = pyqtSignal()
     glow6 = pyqtSignal()
     glow7 = pyqtSignal()
-    glow8 = pyqtSignal()
-    glow9 = pyqtSignal()
-    glow10 = pyqtSignal()
-    glow11 = pyqtSignal()
-    glow12 = pyqtSignal()
-    glow13 = pyqtSignal()
-    glow14 = pyqtSignal()
-    glow15 = pyqtSignal()
 
     def render(self):
         # Getting app window position
@@ -222,18 +205,18 @@ class Render(QObject):
         captured_video = cv2.VideoWriter(file_name, fourcc, FPS, (rect.right-rect.left, rect.bottom-rect.top-34))
         
         if MyWindow.tempo == 120:
-            duration = 16
+            duration = 8
         elif MyWindow.tempo == 150:
-            duration = 12.8
+            duration = 6.4
         elif MyWindow.tempo == 180:
-            duration = 10.7
+            duration = 5.35
 
         for i in range(int(duration * FPS)):
             img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
             img_np = np.array(img)
             img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
 
-            if duration == 16:
+            if duration == 8:
                 if i == 0:
                     self.glow0.emit()
                 elif i == 30:
@@ -250,23 +233,7 @@ class Render(QObject):
                     self.glow6.emit()
                 elif i == 210:
                     self.glow7.emit()
-                elif i == 240:
-                    self.glow8.emit()
-                elif i == 270:
-                    self.glow9.emit()
-                elif i == 300:
-                    self.glow10.emit()
-                elif i == 330:
-                    self.glow11.emit()
-                elif i == 360:
-                    self.glow12.emit()
-                elif i == 390:
-                    self.glow13.emit()
-                elif i == 420:
-                    self.glow14.emit()
-                elif i == 450:
-                    self.glow15.emit()
-            elif duration == 12.8:
+            elif duration == 6.4:
                 if i == 0:
                     self.glow0.emit()
                 elif i == 24:
@@ -283,23 +250,7 @@ class Render(QObject):
                     self.glow6.emit()
                 elif i == 168:
                     self.glow7.emit()
-                elif i == 192:
-                    self.glow8.emit()
-                elif i == 216:
-                    self.glow9.emit()
-                elif i == 240:
-                    self.glow10.emit()
-                elif i == 264:
-                    self.glow11.emit()
-                elif i == 288:
-                    self.glow12.emit()
-                elif i == 312:
-                    self.glow13.emit()
-                elif i == 336:
-                    self.glow14.emit()
-                elif i == 360:
-                    self.glow15.emit()
-            elif duration == 10.7:
+            elif duration == 5.35:
                 if i == 0:
                     self.glow0.emit()
                 elif i == 20:
@@ -316,22 +267,6 @@ class Render(QObject):
                     self.glow6.emit()
                 elif i == 140:
                     self.glow7.emit()
-                elif i == 160:
-                    self.glow8.emit()
-                elif i == 180:
-                    self.glow9.emit()
-                elif i == 200:
-                    self.glow10.emit()
-                elif i == 220:
-                    self.glow11.emit()
-                elif i == 240:
-                    self.glow12.emit()
-                elif i == 260:
-                    self.glow13.emit()
-                elif i == 280:
-                    self.glow14.emit()
-                elif i == 300:
-                    self.glow15.emit()
 
             captured_video.write(img_final)
 
@@ -343,22 +278,14 @@ class Render(QObject):
 # main
 win = MyWindow()
 
-button0 = Element(0, 0)
-button1 = Element(0, 1)
-button2 = Element(0, 2)
-button3 = Element(0, 3)
-button4 = Element(0, 4)
-button5 = Element(0, 5)
-button6 = Element(0, 6)
-button7 = Element(0, 7)
-button8 = Element(1, 0)
-button9 = Element(1, 1)
-button10 = Element(1, 2)
-button11 = Element(1, 3)
-button12 = Element(1, 4)
-button13 = Element(1, 5)
-button14 = Element(1, 6)
-button15 = Element(1, 7)
+button0 = Element(0)
+button1 = Element(1)
+button2 = Element(2)
+button3 = Element(3)
+button4 = Element(4)
+button5 = Element(5)
+button6 = Element(6)
+button7 = Element(7)
 
 grid.addWidget(button0, 0, 0)
 grid.addWidget(button1, 0, 1)
@@ -368,14 +295,6 @@ grid.addWidget(button4, 0, 4)
 grid.addWidget(button5, 0, 5)
 grid.addWidget(button6, 0, 6)
 grid.addWidget(button7, 0, 7)
-grid.addWidget(button8, 1, 0)
-grid.addWidget(button9, 1, 1)
-grid.addWidget(button10, 1, 2)
-grid.addWidget(button11, 1, 3)
-grid.addWidget(button12, 1, 4)
-grid.addWidget(button13, 1, 5)
-grid.addWidget(button14, 1, 6)
-grid.addWidget(button15, 1, 7)
 
 win.show()
 sys.exit(app.exec_())
