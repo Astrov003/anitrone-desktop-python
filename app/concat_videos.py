@@ -10,6 +10,8 @@ clips = [VideoFileClip(path) for path in video_paths]
 # Set the canvas width and offset
 canvas_width = 1760
 offset = 220
+frame_rate = 30 
+frame_offset = 30 / frame_rate
 
 # Create an empty list to hold the final clips with offset
 final_clips = []
@@ -23,7 +25,8 @@ resized_clips = [clip.resize(resize_factor) for clip in clips]
 
 # Lay out the clips horizontally with offset
 for i, clip in enumerate(resized_clips):
-    final_clips.append(clip.set_position((i * (clip.w + offset), 0)))
+    start_time = i * frame_offset  # Set start time for each clip
+    final_clips.append(clip.set_start(start_time).set_position((i * (clip.w + offset), 0)))
 
 # Create a final video by combining the clips
 final_video = clips_array([final_clips])
