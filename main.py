@@ -7,7 +7,7 @@ import os
 # Render imports
 from framer import frame_animation
 from create_videos import create_group_videos
-from create_canvas import create_video_canvas
+from create_canvas import create_image_canvas
 from concat_videos import concat_final_videos
 from cleanup import clean_up_files
 import time  # For simulating the process time
@@ -71,17 +71,17 @@ class RenderThread(QThread):
         self.progressChanged.emit(steps[1])
         time.sleep(1)
 
-        create_video_canvas(self.tempo)  # Simulate task
+        create_image_canvas(self.tempo)  # Simulate task
         self.progressChanged.emit(steps[2])
         time.sleep(1)
 
-        concat_final_videos(self.tempo)  # Simulate task
-        self.progressChanged.emit(steps[3])
-        time.sleep(1)
+        # concat_final_videos(self.tempo)  # Simulate task
+        # self.progressChanged.emit(steps[3])
+        # time.sleep(1)
 
-        clean_up_files()  # Simulate task
-        self.progressChanged.emit(steps[4])
-        time.sleep(1)
+        # clean_up_files()  # Simulate task
+        # self.progressChanged.emit(steps[4])
+        # time.sleep(1)
 
 class MyWindow(QWidget):
     def __init__(self):

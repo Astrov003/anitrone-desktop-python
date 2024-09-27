@@ -1,8 +1,7 @@
 import os
-from moviepy.editor import VideoFileClip, ImageClip, clips_array
 from PIL import Image
 
-def create_video_canvas(tempo):
+def create_image_canvas(tempo):
     if tempo == 120:
         duration = 8
         frames = 30
@@ -13,40 +12,40 @@ def create_video_canvas(tempo):
         duration = 5.35
         frames = 20
 
-    # Define the folder containing your APNG files and the output video name
+    # Define the folder containing your APNG files and the output image name
     apng_folder = ''  # Adjust this to your APNG folder path if needed
-    output_video = 'output_video.mp4'
-    target_width = 1760
+    output_image = 'output_image.png'
     target_height = 220
 
     # Step 1: Extract the first frames from APNG
-    first_frame_clips = []
+    first_frame_images = []
     for i in range(8):
-        input_apng = os.path.join(apng_folder, f'video_{i}.png')
+        input_apng = os.path.join(apng_folder, f'image_{i}.png')
         
         # Open the APNG and get the first frame
         with Image.open(input_apng) as img:
             img.seek(0)  # Get the first frame
             first_frame = img.copy()  # Copy the first frame for processing
         
-        # Create an ImageClip from the first frame
-        first_frame_clip = ImageClip(first_frame).set_duration(duration)  # Set duration for specified time
-        
         # Resize the frame to the target height and maintain aspect ratio
         aspect_ratio = first_frame.width / first_frame.height
         new_width = int(target_height * aspect_ratio)
         
-        # Resize the frame clip
-        first_frame_clip = first_frame_clip.resize(newsize=(new_width, target_height))
-        
-        first_frame_clips.append(first_frame_clip)
+        # Resize the frame
+        first_frame = first_frame.resize((new_width, target_height))
+        first_frame_images.append(first_frame)
 
-    # Step 2: Concatenate frames horizontally
-    # Create a horizontal stack of clips
-    final_clip = clips_array([[clip for clip in first_frame_clips]])
+    # Step 2: Create a canvas to hold the combined image
+    total_width = sum(image.width for image in first_frame_images)
+    canvas = Image.new('RGBA', (total_width, target_height))
 
-    # Step 3: Write the final video
-    final_clip.write_videofile(output_video, fps=30)
+    # Step 3: Paste each frame onto the canvas
+    current_x = 0
+    for image in first_frame_images:
+        canvas.paste(image, (current_x, 0))
+        current_x += image.width
 
-    print("Canvas created")
+    # Step 4: Save the final image
+    canvas.save(output_image)
+    print("Canvas created and saved as", output_image)
 
