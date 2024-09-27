@@ -14,6 +14,8 @@ from ctypes.wintypes import HWND, DWORD, RECT
 import pywintypes
 from win32 import win32gui
 import datetime
+import subprocess
+import shutil
 
 
 ATTACK = 200
@@ -38,43 +40,19 @@ app = QApplication(sys.argv)
 grid = QGridLayout()
 
 
-image0 = QPixmap(resource_path('images/dot.png'))
-image0 = image0.scaledToWidth(220, Qt.SmoothTransformation)
-image0 = image0.scaledToHeight(220, Qt.SmoothTransformation)
-image1 = QPixmap(resource_path('images/down_full.png'))
-image1 = image1.scaledToWidth(220, Qt.SmoothTransformation)
-image1 = image1.scaledToHeight(220, Qt.SmoothTransformation)
-image2 = QPixmap(resource_path('images/down_open.png'))
-image2 = image2.scaledToWidth(220, Qt.SmoothTransformation)
-image2 = image2.scaledToHeight(220, Qt.SmoothTransformation)
-image3 = QPixmap(resource_path('images/up_full.png'))
-image3 = image3.scaledToWidth(220, Qt.SmoothTransformation)
-image3 = image3.scaledToHeight(220, Qt.SmoothTransformation)
-image4 = QPixmap(resource_path('images/up_open.png'))
-image4 = image4.scaledToWidth(220, Qt.SmoothTransformation)
-image4 = image4.scaledToHeight(220, Qt.SmoothTransformation)
-image5 = QPixmap(resource_path('images/cross.png'))
-image5 = image5.scaledToWidth(220, Qt.SmoothTransformation)
-image5 = image5.scaledToHeight(220, Qt.SmoothTransformation)
+image0 = QPixmap(resource_path('images/dot.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image1 = QPixmap(resource_path('images/down_full.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image2 = QPixmap(resource_path('images/down_open.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image3 = QPixmap(resource_path('images/up_full.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image4 = QPixmap(resource_path('images/up_open.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image5 = QPixmap(resource_path('images/cross.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
 
-image0_glow = QPixmap(resource_path('images/dot_glow.png'))
-image0_glow = image0_glow.scaledToWidth(220, Qt.SmoothTransformation)
-image0_glow = image0_glow.scaledToHeight(220, Qt.SmoothTransformation)
-image1_glow = QPixmap(resource_path('images/down_full_glow.png'))
-image1_glow = image1_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image1_glow = image1_glow .scaledToHeight(220, Qt.SmoothTransformation)
-image2_glow = QPixmap(resource_path('images/down_open_glow.png'))
-image2_glow = image2_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image2_glow = image2_glow .scaledToHeight(220, Qt.SmoothTransformation)
-image3_glow = QPixmap(resource_path('images/up_full_glow.png'))
-image3_glow = image3_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image3_glow = image3_glow .scaledToHeight(220, Qt.SmoothTransformation)
-image4_glow = QPixmap(resource_path('images/up_open_glow.png'))
-image4_glow = image4_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image4_glow = image4_glow .scaledToHeight(220, Qt.SmoothTransformation)
-image5_glow = QPixmap(resource_path('images/cross_glow.png'))
-image5_glow = image5_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image5_glow = image5_glow .scaledToHeight(220, Qt.SmoothTransformation)
+image0_glow = QPixmap(resource_path('images/dot_glow.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image1_glow = QPixmap(resource_path('images/down_full_glow.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image2_glow = QPixmap(resource_path('images/down_open_glow.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image3_glow = QPixmap(resource_path('images/up_full_glow.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image4_glow = QPixmap(resource_path('images/up_open_glow.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+image5_glow = QPixmap(resource_path('images/cross_glow.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
 
 images_glow = [image0_glow, image1_glow, image2_glow, image3_glow, image4_glow, image5_glow]
 
@@ -194,16 +172,20 @@ class Render(QObject):
         # Getting app window position
         dwmapi = ctypes.WinDLL("dwmapi")
         hwnd = win32gui.FindWindow(None, 'Anitrone')
-        rect = RECT()
+        rect = ctypes.wintypes.RECT()
         DMWA_EXTENDED_FRAME_BOUNDS = 9
-        dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
+        dwmapi.DwmGetWindowAttribute(ctypes.wintypes.HWND(hwnd), ctypes.wintypes.DWORD(DMWA_EXTENDED_FRAME_BOUNDS), ctypes.byref(rect), ctypes.sizeof(rect))
 
         FPS = 30
         time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-        file_name = f'{time_stamp}.avi'
-        fourcc = cv2.VideoWriter_fourcc(*'FFV1')
-        captured_video = cv2.VideoWriter(file_name, fourcc, FPS, (rect.right-rect.left, rect.bottom-rect.top-34))
         
+        # Directory to save PNG files (temporary directory)
+        output_dir = f'./output_{time_stamp}/'
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Save final video in the script's current working directory
+        script_dir = os.path.abspath(".")  # Current working directory (where script is located)
+
         if MyWindow.tempo == 120:
             duration = 8
         elif MyWindow.tempo == 150:
@@ -212,10 +194,19 @@ class Render(QObject):
             duration = 5.35
 
         for i in range(int(duration * FPS)):
-            img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2))
+            img = ImageGrab.grab(bbox=(rect.left, rect.top+32, rect.right, rect.bottom-2), all_screens=True)
+            
+            # Convert to numpy array (RGBA format)
             img_np = np.array(img)
-            img_final = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
 
+            # Convert to BGRA using OpenCV (BGRA is expected by OpenCV)
+            img_final = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGRA)
+
+            # Save each frame as a PNG with transparency
+            file_name = os.path.join(output_dir, f'frame_{i:04d}.png')
+            cv2.imwrite(file_name, img_final)
+
+            # Emit glow signals based on frame number
             if duration == 8:
                 if i == 0:
                     self.glow0.emit()
@@ -268,11 +259,34 @@ class Render(QObject):
                 elif i == 140:
                     self.glow7.emit()
 
-            captured_video.write(img_final)
+        # Once all frames are saved, call FFmpeg to convert to transparent video
+        self.convert_to_video(output_dir, FPS, script_dir)
 
-        cv2.destroyAllWindows()
-        captured_video.release()
         self.finished.emit()
+
+    def convert_to_video(self, output_dir, fps, script_dir):
+        # Path to the final video file saved in the script directory
+        video_file = os.path.join(script_dir, 'output_video.webm')
+
+        # FFmpeg command to convert PNG sequence to WebM video with transparency
+        ffmpeg_command = [
+            'ffmpeg', '-framerate', str(fps),
+            '-i', os.path.join(output_dir, 'frame_%04d.png'),
+            '-vf', 'scale=out_color_matrix=bt709',  # Ensure correct color handling
+            '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p',  # VP9 codec with alpha channel
+            video_file
+        ]
+
+        try:
+            # Run the FFmpeg command
+            subprocess.run(ffmpeg_command, check=True)
+            print(f"Video file created: {video_file}")
+        except subprocess.CalledProcessError as e:
+            print(f"FFmpeg error: {e}")
+
+        # Optionally: clean up PNG frames after video creation
+        shutil.rmtree(output_dir)
+        print("PNG frames cleaned up.")
 
 
 # main
