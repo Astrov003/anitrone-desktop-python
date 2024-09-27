@@ -1,4 +1,4 @@
-from moviepy.editor import VideoFileClip, clips_array
+from moviepy.editor import VideoFileClip, CompositeVideoClip, clips_array
 
 # Define the number of videos and their paths
 num_videos = 8
@@ -12,6 +12,7 @@ canvas_width = 1760
 offset = 220
 frame_rate = 30 
 frame_offset = 30 / frame_rate
+clip_size = (220, 220)
 
 # Create an empty list to hold the final clips with offset
 final_clips = []
@@ -25,11 +26,19 @@ resized_clips = [clip.resize(resize_factor) for clip in clips]
 
 # Lay out the clips horizontally with offset
 for i, clip in enumerate(resized_clips):
+    resized_clip = clip.resize(clip_size)
     start_time = i * frame_offset  # Set start time for each clip
-    final_clips.append(clip.set_start(start_time).set_position((i * (clip.w + offset), 0)))
+    final_clips.append(resized_clip.set_start(start_time).set_position((i * (clip_size[0]), 0)))
 
 # Create a final video by combining the clips
 final_video = clips_array([final_clips])
 
+# Load the existing video
+existing_video_path = "output_video.mp4"  # Update with your existing video path
+existing_video = VideoFileClip(existing_video_path)
+
+# Create a composite video with the final video on top of the existing video
+output_video = CompositeVideoClip([existing_video, final_video.set_position((0, 0))])
+
 # Write the final video to a file
-final_video.write_videofile("final_video.mp4", codec='libx264', fps=24, audio=False)
+output_video.write_videofile("combined_final_video.mp4", codec='libx264', fps=24, audio=False)
