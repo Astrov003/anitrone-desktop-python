@@ -38,45 +38,17 @@ app = QApplication(sys.argv)
 grid = QGridLayout()
 
 
-image0 = QPixmap(resource_path('images/dot.png'))
-image0 = image0.scaledToWidth(220, Qt.SmoothTransformation)
-image0 = image0.scaledToHeight(220, Qt.SmoothTransformation)
-image1 = QPixmap(resource_path('images/down_full.png'))
-image1 = image1.scaledToWidth(220, Qt.SmoothTransformation)
-image1 = image1.scaledToHeight(220, Qt.SmoothTransformation)
-image2 = QPixmap(resource_path('images/down_open.png'))
-image2 = image2.scaledToWidth(220, Qt.SmoothTransformation)
-image2 = image2.scaledToHeight(220, Qt.SmoothTransformation)
-image3 = QPixmap(resource_path('images/up_full.png'))
-image3 = image3.scaledToWidth(220, Qt.SmoothTransformation)
-image3 = image3.scaledToHeight(220, Qt.SmoothTransformation)
-image4 = QPixmap(resource_path('images/up_open.png'))
-image4 = image4.scaledToWidth(220, Qt.SmoothTransformation)
-image4 = image4.scaledToHeight(220, Qt.SmoothTransformation)
-image5 = QPixmap(resource_path('images/cross.png'))
-image5 = image5.scaledToWidth(220, Qt.SmoothTransformation)
-image5 = image5.scaledToHeight(220, Qt.SmoothTransformation)
+# Load sprite images
+images = [
+    QPixmap(resource_path(f'images/sprite_{i}.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+    for i in range(6)
+]
 
-image0_glow = QPixmap(resource_path('images/dot_glow.png'))
-image0_glow = image0_glow.scaledToWidth(220, Qt.SmoothTransformation)
-image0_glow = image0_glow.scaledToHeight(220, Qt.SmoothTransformation)
-image1_glow = QPixmap(resource_path('images/down_full_glow.png'))
-image1_glow = image1_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image1_glow = image1_glow .scaledToHeight(220, Qt.SmoothTransformation)
-image2_glow = QPixmap(resource_path('images/down_open_glow.png'))
-image2_glow = image2_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image2_glow = image2_glow .scaledToHeight(220, Qt.SmoothTransformation)
-image3_glow = QPixmap(resource_path('images/up_full_glow.png'))
-image3_glow = image3_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image3_glow = image3_glow .scaledToHeight(220, Qt.SmoothTransformation)
-image4_glow = QPixmap(resource_path('images/up_open_glow.png'))
-image4_glow = image4_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image4_glow = image4_glow .scaledToHeight(220, Qt.SmoothTransformation)
-image5_glow = QPixmap(resource_path('images/cross_glow.png'))
-image5_glow = image5_glow .scaledToWidth(220, Qt.SmoothTransformation)
-image5_glow = image5_glow .scaledToHeight(220, Qt.SmoothTransformation)
-
-images_glow = [image0_glow, image1_glow, image2_glow, image3_glow, image4_glow, image5_glow]
+# Glow images
+images_glow = [
+    QPixmap(resource_path(f'images/sprite_{i}_glow.png')).scaled(220, 220, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+    for i in range(6)
+]
 
 class Element(QLabel):
     imgIndex = 0
@@ -85,25 +57,25 @@ class Element(QLabel):
     def __init__(self, elementIndex):
         super(Element, self).__init__()
         self.elementIndex = elementIndex
-        self.setPixmap(image0)
+        self.setPixmap(images[0])
     def mousePressEvent(self, event):
         if self.imgIndex == 0:
-            self.setPixmap(image1)
+            self.setPixmap(images[1])
             self.imgIndex = 1
         elif self.imgIndex == 1:
-            self.setPixmap(image2)
+            self.setPixmap(images[2])
             self.imgIndex = 2
         elif self.imgIndex == 2:
-            self.setPixmap(image3)
+            self.setPixmap(images[3])
             self.imgIndex = 3
         elif self.imgIndex == 3:
-            self.setPixmap(image4)
+            self.setPixmap(images[4])
             self.imgIndex = 4
         elif self.imgIndex == 4:
-            self.setPixmap(image5)
+            self.setPixmap(images[5])
             self.imgIndex = 5
         elif self.imgIndex == 5:
-            self.setPixmap(image0)
+            self.setPixmap(images[0])
             self.imgIndex = 0
     def glow(self):
         glow = Fade()
