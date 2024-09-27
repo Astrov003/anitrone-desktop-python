@@ -198,25 +198,38 @@ class Render(QObject):
             # Clear the composite image for each frame
             composite_img.fill(0)
 
-            # Calculate current sprite index based on frame
-            for j in range(8):  # Iterate through all sprites
-                sprite_index = (i // (FPS // len(images))) % len(images)
-                sprite_img = images[sprite_index]
+            # Calculate the current frame's glow intensity factor
+            glow_factor = 0
+            if i < FPS:  # First second for glowing
+                glow_factor = i / FPS  # Fade in
+            elif i >= int(duration * FPS) - FPS:  # Last second for glowing
+                glow_factor = (int(duration * FPS) - i) / FPS  # Fade out
+
+            # Iterate through all sprites
+            for j in range(6):
+                # Get the current sprite and its glow image
+                sprite_img = images[j]
+                glow_img = images_glow[j]
 
                 # Convert QPixmap to NumPy array
-                qimage = sprite_img.toImage()
-                width, height = qimage.width(), qimage.height()
-                ptr = qimage.bits()
-                ptr.setsize(qimage.byteCount())
-                img_data = np.array(ptr).reshape(height, width, 4)  # Convert to RGBA
+                qimage_sprite = sprite_img.toImage()
+                qimage_glow = glow_img.toImage()
 
-                # Overlay the sprite onto the composite image at the correct position
+                width, height = qimage_sprite.width(), qimage_sprite.height()
+                ptr_sprite = qimage_sprite.bits()
+                ptr_sprite.setsize(qimage_sprite.byteCount())
+                img_data_sprite = np.array(ptr_sprite).reshape(height, width, 4)  # Convert to RGBA
+
+                ptr_glow = qimage_glow.bits()
+                ptr_glow.setsize(qimage_glow.byteCount())
+                img_data_glow = np.array(ptr_glow).reshape(height, width, 4)  # Convert to RGBA
+
+                # Blend the current sprite and glow image based on the glow factor
+                blended_image = cv2.addWeighted(img_data_sprite, 1 - glow_factor, img_data_glow, glow_factor, 0)
+
+                # Overlay the blended image onto the composite image at the correct position
                 x_offset = j * 220  # Calculate the horizontal position for the sprite
-                composite_img[:, x_offset:x_offset + 220, :] = img_data  # Place the sprite in the composite
-
-                # Emit glow signals based on frame number
-                if self.should_glow(i, duration, j):
-                    getattr(self, f'glow{j}').emit()  # Emit the corresponding glow signal
+                composite_img[:, x_offset:x_offset + 220, :] = blended_image  # Place the blended sprite in the composite
 
             # Save the composite frame
             file_name = os.path.join(output_dir, f'frame_{i:04d}.png')
@@ -226,6 +239,7 @@ class Render(QObject):
         self.convert_to_video(output_dir, FPS)
 
         self.finished.emit()
+
 
     def should_glow(self, frame_index, duration, sprite_index):
         # Logic to determine if the sprite should glow in this frame based on the duration
