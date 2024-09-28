@@ -11,14 +11,26 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 # Constants
-def concat_final_videos(tempo):
+def concat_final_videos(tempo, numOfElements):
+    if tempo == 120:
+        duration = 1  # Total duration for each APNG segment in seconds
+    elif tempo == 150:
+        duration = 0.8
+    elif tempo == 180:
+        duration = 0.6
+
+    if numOfElements == 4:
+        final_width = 880
+    if numOfElements == 6:
+        final_width = 1320
+    if numOfElements == 8:
+        final_width = 1760
+
     output_image_path = resource_path('output_image.png')
-    apng_paths = [resource_path(f'image_{i}.png') for i in range(8)]  # Replace with your actual APNG filenames
+    apng_paths = [resource_path(f'image_{i}.png') for i in range(numOfElements)]  # Replace with your actual APNG filenames
     frame_rate = 30  # frames per second
-    duration = 1  # duration for each APNG segment in seconds
-    total_frames = frame_rate * duration  # total frames for each segment
-    spatial_offset = 220  # pixels offset to the right
-    final_width = 1760
+    total_frames = int(frame_rate * duration)  # Total frames for each segment
+    spatial_offset = 220  # Pixels offset to the right
     final_height = 220
 
     # Load the output image
@@ -49,5 +61,8 @@ def concat_final_videos(tempo):
             # Append the combined frame to final frames
             final_frames.append(combined_frame)
 
+    # Calculate duration per frame in milliseconds
+    frame_duration = (duration / total_frames) * 1000
+
     # Save the final animated PNG
-    final_frames[0].save('final_output.png', save_all=True, append_images=final_frames[1:], loop=0, duration=1000 // frame_rate)
+    final_frames[0].save('final_output.png', save_all=True, append_images=final_frames[1:], loop=0, duration=int(frame_duration))

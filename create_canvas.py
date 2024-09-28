@@ -10,17 +10,8 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def create_image_canvas(tempo):
-    if tempo == 120:
-        duration = 8
-        frames = 30
-    elif tempo == 150:
-        duration = 6.4
-        frames = 24
-    elif tempo == 180:
-        duration = 5.35
-        frames = 20
-
+def create_image_canvas(tempo, numOfElements):
+    
     # Define the folder containing your APNG files and the output image name
     apng_folder = ''  # Adjust this to your APNG folder path if needed
     output_image = resource_path('output_image.png')
@@ -28,7 +19,7 @@ def create_image_canvas(tempo):
 
     # Step 1: Extract the first frames from APNG
     first_frame_images = []
-    for i in range(8):
+    for i in range(numOfElements):
         input_apng = resource_path(os.path.join(apng_folder, f'image_{i}.png'))
         
         # Open the APNG and get the first frame

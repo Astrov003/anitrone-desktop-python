@@ -13,7 +13,7 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-def render_image_frames(sprite_index, frame_index, total_frames):
+def render_image_frames(sprite_index, frame_index, frames_per_element):
     # Load sprite images
     images = [
         (resource_path(f'images\\sprite_{i}.png'))
@@ -49,9 +49,9 @@ def render_image_frames(sprite_index, frame_index, total_frames):
     frames = []
 
     # Calculate blending factors for 10 frames to fade in and fade out
-    fade_in_frames = int(total_frames / 6)   # 10 frames for fade in
-    hold_frames = int(total_frames / 3)       # 10 frames for hold
-    fade_out_frames = int(total_frames / 2)   # 10 frames for fade out
+    fade_in_frames = int(frames_per_element / 6)   # 10 frames for fade in
+    hold_frames = int(frames_per_element / 3)       # 10 frames for hold
+    fade_out_frames = int(frames_per_element / 2)   # 10 frames for fade out
 
     # Fade in
     for i in range(fade_in_frames):

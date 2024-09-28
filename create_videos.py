@@ -10,21 +10,21 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def create_group_videos(tempo):
+def create_group_videos(tempo, numOfElements):
     # Set the number of frames per group based on the tempo
     if tempo == 120:
-        frames = 30
+        frames = 60
     elif tempo == 150:
-        frames = 24
+        frames = 48
     elif tempo == 180:
-        frames = 20
+        frames = 40
     else:
         raise ValueError("Tempo must be 120, 150, or 180.")
 
     # Constants
     frame_folder = resource_path("output")
     num_frames_per_group = frames
-    num_groups = 8
+    num_groups = numOfElements
     duration_per_frame = 1000 // 30  # In milliseconds (for 30 fps)
 
     for group in range(num_groups):

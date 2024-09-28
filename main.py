@@ -1,8 +1,12 @@
-from PyQt5.QtWidgets import QLabel, QApplication, QGridLayout, QWidget, QVBoxLayout, QHBoxLayout, QRadioButton, QPushButton, QGroupBox, QProgressBar
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
 import sys
 import os
+import time  # For simulating the process time
+from PyQt5.QtWidgets import (
+    QLabel, QApplication, QGridLayout, QWidget, QVBoxLayout, QHBoxLayout, 
+    QRadioButton, QPushButton, QGroupBox, QProgressBar
+)
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
 
 # Render imports
 from framer import frame_animation
@@ -10,134 +14,155 @@ from create_videos import create_group_videos
 from create_canvas import create_image_canvas
 from concat_videos import concat_final_videos
 from cleanup import clean_up_files
-import time  # For simulating the process time
 
-# fix menu path when compiling to one file
+numOfElements = 4
+
+# Helper function for PyInstaller compatibility
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
+    """ Get absolute path to resource, works for dev and for PyInstaller. """
     try:
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-app = QApplication(sys.argv)
-
-# Load sprite images
-images = [
-    QPixmap(resource_path(f'images/sprite_{i}.png')).scaled(110, 110, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
-    for i in range(6)
-]
-
 class Element(QLabel):
-    # Signal to notify the window whenever the imgIndex changes
-    indexChanged = pyqtSignal(int, int)
+    """A QLabel subclass representing an individual sprite element."""
+    indexChanged = pyqtSignal(int, int)  # Signal emitted when the image index changes
 
-    def __init__(self, elementIndex):
-        super(Element, self).__init__()
+    def __init__(self, elementIndex, images):
+        super().__init__()
         self.elementIndex = elementIndex
-        self.imgIndex = 0  # Instance variable to track the image index
-        self.setPixmap(images[0])
+        self.imgIndex = 0  # Track the current image index
+        self.images = images
+        self.setPixmap(self.images[self.imgIndex])
         self.updatePixmap()
 
     def mousePressEvent(self, event):
-        # Update the imgIndex on click
-        self.imgIndex = (self.imgIndex + 1) % len(images)
+        """Handle click event to cycle through sprite images."""
+        self.imgIndex = (self.imgIndex + 1) % len(self.images)
         self.updatePixmap()
-
-        # Emit signal that the imgIndex has changed
-        self.indexChanged.emit(self.elementIndex, self.imgIndex)
+        self.indexChanged.emit(self.elementIndex, self.imgIndex)  # Emit signal when index changes
 
     def updatePixmap(self):
-        # Update the pixmap of the QLabel based on imgIndex
-        self.setPixmap(images[self.imgIndex])
+        """Update the QLabel's pixmap based on the current imgIndex."""
+        self.setPixmap(self.images[self.imgIndex])
 
 class RenderThread(QThread):
+    """A QThread subclass to handle the rendering process in the background."""
     progressChanged = pyqtSignal(int)
 
     def __init__(self, tempo, elementStates):
-        super(RenderThread, self).__init__()
+        super().__init__()
         self.tempo = tempo
         self.elementStates = elementStates
 
     def run(self):
-        # Simulate each step of rendering with time delay and emit progress
+        """Execute rendering steps with progress signals."""
         steps = [20, 40, 60, 80, 100]
-        frame_animation(self.tempo, self.elementStates)  # Simulate task
+
+        frame_animation(self.tempo, self.elementStates, numOfElements)
         self.progressChanged.emit(steps[0])
 
-        create_group_videos(self.tempo)  # Simulate task
+        create_group_videos(self.tempo, numOfElements)
         self.progressChanged.emit(steps[1])
 
-        create_image_canvas(self.tempo)  # Simulate task
+        create_image_canvas(self.tempo, numOfElements)
         self.progressChanged.emit(steps[2])
 
-        concat_final_videos(self.tempo)  # Simulate task
+        concat_final_videos(self.tempo, numOfElements)
         self.progressChanged.emit(steps[3])
 
-        clean_up_files()  # Simulate task
+        clean_up_files(numOfElements)
         self.progressChanged.emit(steps[4])
 
 class MyWindow(QWidget):
+    """Main window that contains the UI for rendering animations."""
     def __init__(self):
-        super(MyWindow, self).__init__()
+        super().__init__()
         self.setWindowTitle('Anitrone 2.0')
-        self.setGeometry(480, 480, 960, 110)  # Set the window size to 960x110
+        self.setGeometry(480, 480, 550, 110)
         self.setStyleSheet("background: black;")
 
-        # Main layout
+        self.elementStates = [0] * numOfElements  # Track the state of each element
+        self.initUI()
+
+    def initUI(self):
+        """Initialize the UI components."""
         mainLayout = QHBoxLayout(self)
 
-        # Grid layout for elements
-        grid = QGridLayout()
-        self.elements = [Element(i) for i in range(8)]
-        self.elementStates = [0] * len(self.elements)  # Track imgIndex of each element
+        # Load sprite images
+        self.images = self.loadImages()
 
-        # Connect each element's indexChanged signal to the state handler
+        # Add elements grid
+        mainLayout.addLayout(self.createElementsGrid())
+
+        # Add controls (radio buttons, render button, progress bar)
+        mainLayout.addLayout(self.createControlPanel())
+
+    def loadImages(self):
+        """Load and return a list of QPixmap images."""
+        return [
+            QPixmap(resource_path(f'images/sprite_{i}.png')).scaled(
+                110, 110, Qt.IgnoreAspectRatio, Qt.SmoothTransformation
+            ) for i in range(6)
+        ]
+
+    def createElementsGrid(self):
+        """Create a grid layout for sprite elements."""
+        grid = QGridLayout()
+        self.elements = [Element(i, self.images) for i in range(numOfElements)]
+        
         for i, element in enumerate(self.elements):
             element.indexChanged.connect(self.updateElementState)
             grid.addWidget(element, 0, i)
 
-        # Add the grid layout to the main layout
-        mainLayout.addLayout(grid)
+        return grid
 
-        # Vertical layout for radio buttons and the start button
+    def createControlPanel(self):
+        """Create a control panel layout containing radio buttons and render button."""
         controlLayout = QVBoxLayout()
 
-        # Group box to hold radio buttons and labels
+        # Create tempo radio buttons
         radioGroup = QGroupBox("Select Tempo")
         radioLayout = QVBoxLayout()
 
-        # Radio buttons and labels
-        self.tempo120 = QRadioButton("120 BPM")
-        self.tempo150 = QRadioButton("150 BPM")
-        self.tempo180 = QRadioButton("180 BPM")
-        self.tempo120.setChecked(True)  # Set default to 120
+        self.tempo120 = self.createRadioButton("120 BPM", True)
+        self.tempo150 = self.createRadioButton("150 BPM")
+        self.tempo180 = self.createRadioButton("180 BPM")
 
-        # Apply stylesheet for white text
-        radioStylesheet = """
-            QRadioButton {
-                color: white;
-            }
-        """
-        self.tempo120.setStyleSheet(radioStylesheet)
-        self.tempo150.setStyleSheet(radioStylesheet)
-        self.tempo180.setStyleSheet(radioStylesheet)
-
-        # Add radio buttons to the radio layout
         radioLayout.addWidget(self.tempo120)
         radioLayout.addWidget(self.tempo150)
         radioLayout.addWidget(self.tempo180)
-
-        # Set the layout to the group box
         radioGroup.setLayout(radioLayout)
-
-        # Add radio group to control layout
         controlLayout.addWidget(radioGroup)
 
-        # Render button (start button)
+        # Render button
         self.startButton = QPushButton("Render")
-        self.startButton.setStyleSheet("""
+        self.startButton.setStyleSheet(self.getButtonStyle())
+        self.startButton.clicked.connect(self.start)
+        controlLayout.addWidget(self.startButton)
+
+        # Progress bar
+        self.progressBar = QProgressBar()
+        self.progressBar.setStyleSheet(self.getProgressBarStyle())
+        self.progressBar.setValue(0)
+        controlLayout.addWidget(self.progressBar)
+
+        return controlLayout
+
+    def createRadioButton(self, text, checked=False):
+        """Create a styled QRadioButton."""
+        radioButton = QRadioButton(text)
+        radioButton.setChecked(checked)
+        radioButton.setStyleSheet("""
+            QRadioButton { color: white; }
+        """)
+        return radioButton
+
+    def getButtonStyle(self):
+        """Return the style for the render button."""
+        return """
             QPushButton {
                 border: 2px solid white;
                 padding: 10px;
@@ -147,15 +172,11 @@ class MyWindow(QWidget):
             QPushButton:hover {
                 background-color: gray;
             }
-        """)
-        self.startButton.clicked.connect(self.start)
+        """
 
-        # Add the start button to the control layout
-        controlLayout.addWidget(self.startButton)
-
-        # Progress bar
-        self.progressBar = QProgressBar()
-        self.progressBar.setStyleSheet("""
+    def getProgressBarStyle(self):
+        """Return the style for the progress bar."""
+        return """
             QProgressBar {
                 color: black;
                 text-align: center;
@@ -163,37 +184,39 @@ class MyWindow(QWidget):
             QProgressBar::chunk {
                 background-color: #01EEDD;
             }
-        """)
-        self.progressBar.setValue(0)  # Set initial value
-        controlLayout.addWidget(self.progressBar)
-
-        # Add the control layout to the main layout
-        mainLayout.addLayout(controlLayout)
+        """
 
     def updateElementState(self, elementIndex, imgIndex):
-        # Update the internal state of elements whenever an imgIndex changes
+        """Update the internal state of the elements when an imgIndex changes."""
         self.elementStates[elementIndex] = imgIndex
 
     def start(self):
-        # Check which radio button is selected and get the corresponding tempo
-        if self.tempo120.isChecked():
-            tempo = 120
-        elif self.tempo150.isChecked():
-            tempo = 150
-        else:
-            tempo = 180
-
-        # Start the rendering process in a separate thread
+        """Start the rendering process in a separate thread."""
+        tempo = self.getSelectedTempo()
         self.renderThread = RenderThread(tempo, self.elementStates)
         self.renderThread.progressChanged.connect(self.updateProgress)
         self.renderThread.start()
 
+    def getSelectedTempo(self):
+        """Return the selected tempo based on the radio button selection."""
+        if self.tempo120.isChecked():
+            return 120
+        elif self.tempo150.isChecked():
+            return 150
+        else:
+            return 180
+
     @pyqtSlot(int)
     def updateProgress(self, value):
-        # Update the progress bar based on the emitted signal
+        """Update the progress bar based on the emitted progress signal."""
         self.progressBar.setValue(value)
 
-# main
-win = MyWindow()
-win.show()
-sys.exit(app.exec_())
+# Main entry point
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+
+    # Initialize and show main window
+    win = MyWindow()
+    win.show()
+
+    sys.exit(app.exec_())
