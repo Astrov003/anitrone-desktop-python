@@ -16,13 +16,13 @@ def resource_path(relative_path):
 def render_image_frames(sprite_index, frame_index, total_frames):
     # Load sprite images
     images = [
-        (resource_path(f'images/sprite_{i}.png'))
+        (resource_path(f'images\\sprite_{i}.png'))
         for i in range(6)
     ]
 
     # Glow images
     images_glow = [
-        (resource_path(f'images/sprite_{i}_glow.png'))
+        (resource_path(f'images\\sprite_{i}_glow.png'))
         for i in range(6)
     ]
 
@@ -38,8 +38,8 @@ def render_image_frames(sprite_index, frame_index, total_frames):
         raise ValueError("Both images must be PNG files with an alpha channel.")
 
     # Initialize parameters
-    blend_duration = 200  # in ms for blending
-    hold_duration = 200    # in ms for holding the blended image
+    # blend_duration = 200  # in ms for blending
+    # hold_duration = 200    # in ms for holding the blended image
 
     # Create output directory if it doesn't exist
     output_dir = './output'
@@ -49,9 +49,9 @@ def render_image_frames(sprite_index, frame_index, total_frames):
     frames = []
 
     # Calculate blending factors for 10 frames to fade in and fade out
-    fade_in_frames = int(total_frames / 3)   # 10 frames for fade in
+    fade_in_frames = int(total_frames / 6)   # 10 frames for fade in
     hold_frames = int(total_frames / 3)       # 10 frames for hold
-    fade_out_frames = int(total_frames / 3)   # 10 frames for fade out
+    fade_out_frames = int(total_frames / 2)   # 10 frames for fade out
 
     # Fade in
     for i in range(fade_in_frames):

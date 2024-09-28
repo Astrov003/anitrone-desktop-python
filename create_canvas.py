@@ -1,6 +1,15 @@
 import os
 from PIL import Image
 
+# fix menu path when compiling to one file
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 def create_image_canvas(tempo):
     if tempo == 120:
         duration = 8
@@ -14,13 +23,13 @@ def create_image_canvas(tempo):
 
     # Define the folder containing your APNG files and the output image name
     apng_folder = ''  # Adjust this to your APNG folder path if needed
-    output_image = 'output_image.png'
+    output_image = resource_path('output_image.png')
     target_height = 220
 
     # Step 1: Extract the first frames from APNG
     first_frame_images = []
     for i in range(8):
-        input_apng = os.path.join(apng_folder, f'image_{i}.png')
+        input_apng = resource_path(os.path.join(apng_folder, f'image_{i}.png'))
         
         # Open the APNG and get the first frame
         with Image.open(input_apng) as img:

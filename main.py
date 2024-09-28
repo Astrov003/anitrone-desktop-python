@@ -65,23 +65,18 @@ class RenderThread(QThread):
         steps = [20, 40, 60, 80, 100]
         frame_animation(self.tempo, self.elementStates)  # Simulate task
         self.progressChanged.emit(steps[0])
-        time.sleep(1)  # Simulate time-consuming task
 
         create_group_videos(self.tempo)  # Simulate task
         self.progressChanged.emit(steps[1])
-        time.sleep(1)
 
         create_image_canvas(self.tempo)  # Simulate task
         self.progressChanged.emit(steps[2])
-        time.sleep(1)
 
-        # concat_final_videos(self.tempo)  # Simulate task
-        # self.progressChanged.emit(steps[3])
-        # time.sleep(1)
+        concat_final_videos(self.tempo)  # Simulate task
+        self.progressChanged.emit(steps[3])
 
-        # clean_up_files()  # Simulate task
-        # self.progressChanged.emit(steps[4])
-        # time.sleep(1)
+        clean_up_files()  # Simulate task
+        self.progressChanged.emit(steps[4])
 
 class MyWindow(QWidget):
     def __init__(self):
@@ -162,11 +157,11 @@ class MyWindow(QWidget):
         self.progressBar = QProgressBar()
         self.progressBar.setStyleSheet("""
             QProgressBar {
-                color: white;
+                color: black;
                 text-align: center;
             }
             QProgressBar::chunk {
-                background-color: #00ff00;
+                background-color: #01EEDD;
             }
         """)
         self.progressBar.setValue(0)  # Set initial value
